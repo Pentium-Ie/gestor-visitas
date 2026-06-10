@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modular Glass Enterprise - Gestor de Visitas</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/glass.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/historial.css">
+  <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+  <div class="canvas" id="app-canvas">
+
+    <div id="view-login" class="glass-card layout-login" draggable="false">
+      <div class="glass-glow"></div>
+      <div class="glass-content">
+        <form class="login-form" id="form-login">
+          <h2>Welcome Back</h2>
+          <p class="subtitle">Enter your studio credentials</p>
+
+          <div class="input-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" autocomplete="off" placeholder="admin">
+          </div>
+
+          <div class="input-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••">
+          </div>
+          <p id="login-error" class="error-text" role="alert"></p>
+
+          <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="view-dashboard" class="dashboard-wrapper hidden">
+
+      <header class="glass-card system-header" draggable="false">
+        <div class="glass-glow"></div>
+        <div class="glass-content header-inner">
+          <div class="logo">STUDIO<span>PRISM</span></div>
+          <nav class="system-nav" aria-label="Navegación principal">
+            <a href="#" class="nav-link active" data-target="sec-registro" role="button">Registro</a>
+            <a href="#" class="nav-link" data-target="sec-programacion" role="button">Programación</a>
+            <a href="#" class="nav-link" data-target="sec-historial" role="button">Historial</a>
+            <a href="#" class="nav-link" data-target="sec-admin" role="button">Administración</a>
+          </nav>
+          <button id="btn-logout" class="btn-logout">Log Out</button>
+        </div>
+      </header>
+
+      <div class="workspace-container">
+
+        <main id="sec-registro" class="glass-card workspace-panel" draggable="false">
+          <div class="glass-glow"></div>
+          <div class="glass-content grid-workspace">
+
+            <section class="form-section">
+              <h3>Registro de Visitas</h3>
+              <form id="form-registro" class="grid-form">
+                <div class="input-group">
+                  <label for="reg-tipodoc">Tipo Documento</label>
+                  <select id="reg-tipodoc">
+                    <option value="DNI">DNI</option>
+                    <option value="CE">Carnet de Extranjería</option>
+                    <option value="PAS">Pasaporte</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="reg-numdoc">Nro. Documento</label>
+                  <input type="text" id="reg-numdoc" placeholder="12345678" required>
+                </div>
+                <div class="input-group full-width">
+                  <label for="reg-nombre">Nombre Completo</label>
+                  <input type="text" id="reg-nombre" placeholder="Juan Pérez" required>
+                </div>
+                <div class="input-group">
+                  <label for="reg-empresa">Empresa de Procedencia</label>
+                  <input type="text" id="reg-empresa" placeholder="Empresa S.A.">
+                </div>
+                <div class="input-group">
+                  <label for="reg-motivo">Motivo de Visita</label>
+                  <input type="text" id="reg-motivo" placeholder="Reunión de trabajo">
+                </div>
+                <div class="input-group full-width">
+                  <label for="reg-anfitrion">¿A quién visita?</label>
+                  <input type="text" id="reg-anfitrion" placeholder="Área / Nombre del personal" required>
+                </div>
+                <div class="input-group full-width">
+                  <label for="reg-obs">Observaciones</label>
+                  <textarea id="reg-obs" rows="2" placeholder="Notas adicionales..."></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Registrar Ingreso</button>
+              </form>
+            </section>
+
+            <section class="list-section">
+              <h3>Personal en Planta</h3>
+              <div class="inside-list" id="active-visitors-list"></div>
+            </section>
+
+          </div>
+        </main>
+
+        <main id="sec-historial" class="glass-card workspace-panel hidden-section" draggable="false">
+          <div class="glass-glow"></div>
+          <div class="glass-content">
+            <div class="historial-header">
+              <h3>Historial de Movimientos</h3>
+              <div class="historial-filters">
+                <div class="input-group filter-search">
+                  <label for="historial-search-col">Buscar por</label>
+                  <div class="search-row">
+                    <select id="historial-search-col">
+                      <option value="nombre">Nombre</option>
+                      <option value="empresa">Empresa</option>
+                      <option value="motivo">Motivo</option>
+                      <option value="anfitrion">Anfitrión</option>
+                    </select>
+                    <input type="text" id="historial-search" placeholder="Escribir filtro...">
+                  </div>
+                </div>
+                <div class="input-group filter-date">
+                  <label for="historial-fecha-inicio">Fecha Inicio</label>
+                  <input type="date" id="historial-fecha-inicio">
+                </div>
+                <div class="input-group filter-date">
+                  <label for="historial-fecha-fin">Fecha Fin</label>
+                  <input type="date" id="historial-fecha-fin">
+                </div>
+              </div>
+            </div>
+            <div class="historial-table-wrapper">
+              <table class="historial-table" id="historial-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Fecha/Hora</th>
+                    <th scope="col">Documento</th>
+                    <th scope="col">Nombre</th>
+                    <th scope="col">Empresa</th>
+                    <th scope="col">Motivo</th>
+                    <th scope="col">Anfitrión</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col"><span class="sr-only">Acción</span></th>
+                  </tr>
+                </thead>
+                <tbody id="historial-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+
+        <main id="sec-admin" class="glass-card workspace-panel hidden-section" draggable="false">
+          <div class="glass-glow"></div>
+          <div class="glass-content view-placeholder">
+            <h3>Panel de Administración</h3>
+            <p>Configuración de credenciales y permisos del sistema.</p>
+          </div>
+        </main>
+
+        <main id="sec-programacion" class="glass-card workspace-panel hidden-section" draggable="false">
+          <div class="glass-glow"></div>
+          <div class="glass-content grid-workspace">
+
+            <section class="form-section">
+              <h3>Agendar Visita</h3>
+              <form id="form-programacion" class="grid-form">
+                <div class="input-group">
+                  <label for="prog-tipodoc">Tipo Documento</label>
+                  <select id="prog-tipodoc">
+                    <option value="DNI">DNI</option>
+                    <option value="CE">Carnet de Extranjería</option>
+                    <option value="PAS">Pasaporte</option>
+                  </select>
+                </div>
+                <div class="input-group">
+                  <label for="prog-numdoc">Nro. Documento</label>
+                  <input type="text" id="prog-numdoc" placeholder="12345678" required>
+                </div>
+                <div class="input-group full-width">
+                  <label for="prog-nombre">Nombre Completo</label>
+                  <input type="text" id="prog-nombre" placeholder="Juan Pérez" required>
+                </div>
+                <div class="input-group">
+                  <label for="prog-empresa">Empresa de Procedencia</label>
+                  <input type="text" id="prog-empresa" placeholder="Empresa S.A.">
+                </div>
+                <div class="input-group">
+                  <label for="prog-motivo">Motivo de Visita</label>
+                  <input type="text" id="prog-motivo" placeholder="Reunión de trabajo">
+                </div>
+                <div class="input-group full-width">
+                  <label for="prog-anfitrion">¿A quién visita?</label>
+                  <input type="text" id="prog-anfitrion" placeholder="Área / Nombre del personal" required>
+                </div>
+                <div class="input-group full-width">
+                  <label for="prog-fecha">Fecha y Hora</label>
+                  <input type="datetime-local" id="prog-fecha" required>
+                </div>
+                <button type="submit" class="btn-submit">Agendar Visita</button>
+              </form>
+            </section>
+
+            <section class="list-section">
+              <h3>Visitas Programadas</h3>
+              <div class="inside-list" id="scheduled-visitors-list"></div>
+            </section>
+
+          </div>
+        </main>
+
+      </div>
+    </div>
+
+    <div id="modal-salida" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-salida-title">
+      <div class="glass-card modal-glass modal-sm">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-salida-title">Confirmar Salida</h3>
+          <p id="modal-visitor-info">¿Confirmar la salida de la visita?</p>
+          <div class="input-group">
+            <label for="exit-obs">Observación de Salida</label>
+            <textarea id="exit-obs" rows="3" placeholder="Ninguna novedad..."></textarea>
+          </div>
+          <div class="modal-actions">
+            <button id="modal-cancel" class="btn-secondary">Cancelar</button>
+            <button id="modal-confirm" class="btn-danger">Registrar Salida</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-visitor-detail" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-visitor-detail-title">
+      <div class="glass-card modal-glass modal-md">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-visitor-detail-title">Detalle de Visita</h3>
+          <div class="detail-grid" id="modal-visitor-detail-content"></div>
+          <div class="modal-actions">
+            <button id="modal-visitor-detail-close" class="btn-secondary">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-detalle" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-detalle-title">
+      <div class="glass-card modal-glass modal-md">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-detalle-title">Detalle de Programación</h3>
+          <div class="detail-grid" id="detail-content"></div>
+          <div class="modal-actions">
+            <button id="detail-cancel" class="btn-secondary">Cerrar</button>
+            <button id="detail-edit" class="btn-secondary">Editar</button>
+            <button id="detail-register" class="btn-submit">Registrar Ingreso</button>
+            <button id="detail-cancelar" class="btn-danger">Cancelar Visita</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-confirmar-registro" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-confirm-title">
+      <div class="glass-card modal-glass modal-sm">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-confirm-title">Confirmar Registro</h3>
+          <p id="confirm-visitor-name"></p>
+          <div class="input-group">
+            <label for="confirm-obs">Observaciones de Ingreso</label>
+            <textarea id="confirm-obs" rows="3" placeholder="Observaciones adicionales..."></textarea>
+          </div>
+          <div class="modal-actions">
+            <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
+            <button id="confirm-ok" class="btn-submit">Confirmar Registro</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-historial-detail" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-historial-title">
+      <div class="glass-card modal-glass modal-md">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-historial-title">Detalle de Registro</h3>
+          <div class="detail-grid" id="historial-detail-content"></div>
+          <div class="modal-actions">
+            <button id="historial-detail-close" class="btn-secondary">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loader" class="loader-overlay hidden" role="status" aria-live="polite">
+      <div class="loader-spinner"></div>
+      <span class="sr-only">Cargando...</span>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="js/helpers.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/historial.js"></script>
+  <script src="js/registro.js"></script>
+  <script src="js/programacion.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

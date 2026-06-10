@@ -1,0 +1,13 @@
+:root {
+  --bg-main: #0d0e12;
+  --glass-bg: linear-gradient(135deg, rgba(23, 25, 36, 0.92) 0%, rgba(13, 14, 20, 0.98) 100%);
+  --glass-border-base: rgba(255, 255, 255, 0.06);
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.45);
+  --text-accent: rgba(255, 255, 255, 0.3);
+  --danger-color: #ff5555;
+  --danger-bg-hover: rgba(255, 85, 85, 0.2);
+  --success-color: #5ddb8a;
+  --warning-color: #ffc832;
+  --focus-ring: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}

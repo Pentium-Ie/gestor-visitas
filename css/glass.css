@@ -1,0 +1,137 @@
+.glass-card {
+  position: relative;
+  border-radius: 24px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  transition: opacity 0.3s ease;
+}
+.glass-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.3px;
+  background: linear-gradient(
+    var(--light-deg, 135deg),
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.1) var(--light-pos-edge, 35%),
+    rgba(255, 255, 255, 0) 55%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 4;
+}
+.glass-glow {
+  position: absolute;
+  inset: -100%;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--light-deg, 135deg),
+    transparent 0%,
+    transparent var(--light-pos-min, 15%),
+    rgba(255, 255, 255, 0.015) var(--light-pos-edge, 32%),
+    rgba(255, 255, 255, 0.09) var(--light-pos-peak, 45%),
+    rgba(255, 255, 255, 0.015) var(--light-pos-edge2, 58%),
+    transparent var(--light-pos-max, 75%),
+    transparent 100%
+  );
+  z-index: 3;
+  mix-blend-mode: overlay;
+  will-change: transform;
+}
+.glass-content {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 5;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+.modal-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 90vw;
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+}
+.modal-glass.modal-sm { width: 380px; }
+.modal-glass.modal-md { width: 450px; }
+.modal-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  padding: 1.3px;
+  background: linear-gradient(
+    var(--light-deg, 135deg),
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.1) var(--light-pos-edge, 35%),
+    rgba(255, 255, 255, 0) 55%,
+    rgba(255, 255, 255, 0.2) 100%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 4;
+}
+.modal-glass .glass-glow {
+  position: absolute;
+  inset: -100%;
+  pointer-events: none;
+  background: linear-gradient(
+    var(--light-deg, 135deg),
+    transparent 0%,
+    transparent var(--light-pos-min, 15%),
+    rgba(255, 255, 255, 0.015) var(--light-pos-edge, 32%),
+    rgba(255, 255, 255, 0.09) var(--light-pos-peak, 45%),
+    rgba(255, 255, 255, 0.015) var(--light-pos-edge2, 58%),
+    transparent var(--light-pos-max, 75%),
+    transparent 100%
+  );
+  z-index: 3;
+  mix-blend-mode: overlay;
+  will-change: transform;
+}
+.modal-glass .glass-content {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 5;
+  width: 100%;
+}
+.modal-glass h3 { color: var(--text-primary); margin: 0 0 8px 0; font-size: 1.1rem; }
+.modal-glass p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 16px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+.modal-actions button { padding: 8px 14px; border-radius: 6px; font-size: 0.82rem; font-weight: 600; cursor: pointer; border: none; }
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 16px;
+  margin-bottom: 16px;
+  font-size: 0.85rem;
+}
+.detail-grid .label { color: var(--text-muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.detail-grid .value { color: var(--text-primary); font-weight: 500; }
+.detail-grid .full-row { grid-column: span 2; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.05); margin-top: 8px; }
+.detail-grid .observaciones { color: var(--text-muted); font-weight: 400; }
