@@ -10,9 +10,9 @@ Reemplazar el estado local en memoria (`AppState.personasEnPlanta`, `AppState.vi
 
 1. Ir a [supabase.com](https://supabase.com) → **New Project**
 2. Datos del proyecto:
-   - **Name:** `gestor-visitas`
-   - **Database Password:** (generar y guardar en gestor de contraseñas)
-   - **Region:** `South America (São Paulo)` — menor latencia para Perú
+- **Name:** `gestor-visitas`
+- **Database Password:** `ITzsUV9nJSk352Hd` (guardar en gestor de contraseñas)
+- **Region:** `South America (São Paulo)` — menor latencia para Perú
 3. Una vez creado, copiar desde **Settings → API**:
    - `Project URL` (ej. `https://xxxxx.supabase.co`)
    - `anon public key`

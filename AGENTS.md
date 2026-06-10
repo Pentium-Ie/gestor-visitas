@@ -40,3 +40,10 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - El panel de Administración sigue siendo placeholder
 - Sin paginación en historial (para producción con +1000 registros)
 - Sin tests unitarios
+
+## Infraestructura Cloud
+- **Supabase**: proyecto creado (ref: `bygwwnaudkxinytgbmrf`, región `sa-east-1`)
+- **URL API**: `https://bygwwnaudkxinytgbmrf.supabase.co`
+- **Admin Auth**: `admin@gestor-visitas.com` / `admin123`
+- **Tablas**: `perfiles`, `programadas`, `en_planta`, `historial` (con RLS)
+- **GitHub**: `https://github.com/Pentium-Ie/gestor-visitas`
