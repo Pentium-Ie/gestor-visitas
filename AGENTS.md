@@ -9,7 +9,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - `js/` — 6 archivos modulares (helpers.js, supabase-client.js, historial.js, registro.js, programacion.js, app.js)
 - Orden de carga JS: supabase-js CDN → helpers.js → supabase-client.js → historial.js → registro.js → programacion.js → app.js
 - Estado global compartido via `window.AppState`
-- Login: admin / admin123 (hardcoded, migrable a Supabase Auth)
+- Login: Supabase Auth (`master-admin@gestor-visitas.com` / `Huachip5667Sca85#`)
 - Archivos monolíticos eliminados (`script.js`, `styles.css`)
 
 ## Vistas Implementadas
@@ -35,7 +35,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - **CSS sin inline styles**: widths de modales pasados a clases `.modal-sm` / `.modal-md`
 
 ## Estado de Migración a Supabase (Junio 2026)
-- **Login**: hardcoded (`admin/admin123`) + Supabase Auth (`admin@gestor-visitas.com`) — ambos funcionales
+- **Login**: Supabase Auth (`master-admin@gestor-visitas.com`) — hardcoded removido
 - **Registro**: INSERT en `en_planta` + `historial` vía Supabase; upsert en `visitantes` y `anfitriones`
 - **Salida**: UPDATE `en_planta.salida_en` + INSERT en `historial` con estado `'salida'`
 - **Programación**: INSERT/UPDATE/DELETE en `programadas` vía Supabase; registro desde programada INSERT en `en_planta` + `historial` con estado `'ingreso_programado'`

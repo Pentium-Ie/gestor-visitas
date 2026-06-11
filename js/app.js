@@ -105,12 +105,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (email === 'admin' && password === 'admin123') {
-      loginError.textContent = "";
-      entrarAlSistema();
-      return;
-    }
-
     toggleLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
