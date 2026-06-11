@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const formLogin = document.getElementById('form-login');
   const loginError = document.getElementById('login-error');
   const btnLogout = document.getElementById('btn-logout');
+  const togglePassword = document.getElementById('toggle-password');
+  const passwordInput = document.getElementById('password');
+
+  togglePassword?.addEventListener('click', () => {
+    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+    passwordInput.setAttribute('type', type);
+    togglePassword.setAttribute('aria-label', type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
+  });
 
   const navLinks = document.querySelectorAll('.nav-link');
   const workspacePanels = document.querySelectorAll('.workspace-panel');
