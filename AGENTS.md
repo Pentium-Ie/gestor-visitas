@@ -9,7 +9,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - `js/` — 6 archivos modulares (helpers.js, supabase-client.js, historial.js, registro.js, programacion.js, app.js)
 - Orden de carga JS: supabase-js CDN → helpers.js → supabase-client.js → historial.js → registro.js → programacion.js → app.js
 - Estado global compartido via `window.AppState`
-- Login: Supabase Auth (`master-admin@gestor-visitas.com` / `Huachip5667Sca85#`)
+- Login: Supabase Auth
 - Archivos monolíticos eliminados (`script.js`, `styles.css`)
 
 ## Vistas Implementadas
@@ -35,7 +35,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - **CSS sin inline styles**: widths de modales pasados a clases `.modal-sm` / `.modal-md`
 
 ## Estado de Migración a Supabase (Junio 2026)
-- **Login**: Supabase Auth (`master-admin@gestor-visitas.com`) — hardcoded removido
+- **Login**: Supabase Auth — hardcoded removido
 - **Registro**: INSERT en `en_planta` + `historial` vía Supabase; upsert en `visitantes` y `anfitriones`
 - **Salida**: UPDATE `en_planta.salida_en` + INSERT en `historial` con estado `'salida'`
 - **Programación**: INSERT/UPDATE/DELETE en `programadas` vía Supabase; registro desde programada INSERT en `en_planta` + `historial` con estado `'ingreso_programado'`
@@ -52,7 +52,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 ## Infraestructura Cloud
 - **Supabase**: proyecto creado (ref: `bygwwnaudkxinytgbmrf`, región `sa-east-1`)
 - **URL API**: `https://bygwwnaudkxinytgbmrf.supabase.co`
-- **Admin Auth**: `admin@gestor-visitas.com` / `admin123`
+- **Admin Auth**: creado vía Supabase Dashboard
 - **GitHub**: `https://github.com/Pentium-Ie/gestor-visitas`
 - **Tablas (6)**: `perfiles`, `anfitriones`, `visitantes`, `programadas`, `en_planta`, `historial`
 - **RLS**: 15 policies (historial solo SELECT/INSERT, DELETE solo admin)

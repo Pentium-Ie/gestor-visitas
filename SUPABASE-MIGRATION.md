@@ -13,7 +13,7 @@ normalizado con integridad referencial.
 - **Ref:** `bygwwnaudkxinytgbmrf`
 - **URL:** `https://bygwwnaudkxinytgbmrf.supabase.co`
 - **Región:** `sa-east-1` (São Paulo)
-- **Admin Auth:** `admin@gestor-visitas.com` / `admin123`
+- **Admin Auth:** creado vía Supabase Dashboard
 - **DB Password:** `ITzsUV9nJSk352Hd` (guardar en gestor de contraseñas)
 
 ---
@@ -285,7 +285,7 @@ INSERT INTO anfitriones (nombre, area) VALUES
 
 ## Fase 7 — Migración del Login
 
-Reemplazar la validación hardcoded `admin/admin123` en `app.js`:
+Reemplazar la validación hardcoded en `app.js`:
 
 ```js
 formLogin.addEventListener('submit', async (e) => {
