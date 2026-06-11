@@ -119,8 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (error) throw error;
       loginError.textContent = "";
       entrarAlSistema();
-    } catch {
-      loginError.textContent = "Usuario o contraseña incorrectos.";
+    } catch (err) {
+      console.error('Login error:', err);
+      loginError.textContent = err.message || "Usuario o contraseña incorrectos.";
     } finally {
       toggleLoading(false);
     }
