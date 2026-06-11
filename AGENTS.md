@@ -35,8 +35,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - **CSS sin inline styles**: widths de modales pasados a clases `.modal-sm` / `.modal-md`
 
 ## Pendientes / Notas
-- Migración a Supabase documentada en `SUPABASE-MIGRATION.md` (fases 1-10)
-- El login actual sigue siendo hardcoded; seguir la guía para migrar a Supabase Auth
+- El login actual sigue siendo hardcoded; migrar a Supabase Auth para producción
 - El panel de Administración sigue siendo placeholder
 - Sin paginación en historial (para producción con +1000 registros)
 - Sin tests unitarios
@@ -45,5 +44,11 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - **Supabase**: proyecto creado (ref: `bygwwnaudkxinytgbmrf`, región `sa-east-1`)
 - **URL API**: `https://bygwwnaudkxinytgbmrf.supabase.co`
 - **Admin Auth**: `admin@gestor-visitas.com` / `admin123`
-- **Tablas**: `perfiles`, `programadas`, `en_planta`, `historial` (con RLS)
 - **GitHub**: `https://github.com/Pentium-Ie/gestor-visitas`
+- **Tablas (6)**: `perfiles`, `anfitriones`, `visitantes`, `programadas`, `en_planta`, `historial`
+- **RLS**: 15 policies (historial solo SELECT/INSERT, DELETE solo admin)
+- **Auto-checkout**: función `fn_auto_checkout_cierre()` lista para Edge Function
+- **Seed**: 8 anfitriones insertados
+- **Triggers**: `trg_visitantes_actualizado` para timestamp de actualización
+- **Constraints**: `chk_salida` (obs_salida >= 4 chars al registrar salida), `uq_en_planta_activo` (único visitante activo por vez), FK con `ON DELETE RESTRICT` en perfiles, CHECK en estado/tipo_doc
+- **Índices**: 21 totales (PKs, FK btree, 3 GIN trgm, parcial único compuesto) — ver `pg_indexes` en `public`
