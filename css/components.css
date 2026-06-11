@@ -77,7 +77,7 @@
 .estado-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
 .estado-ingreso, .estado-ingresoprogramado { background: rgba(93, 219, 138, 0.18); color: var(--success-color); }
 .estado-salida { background: rgba(255, 85, 85, 0.18); color: var(--danger-color); }
-.estado-cancelada { background: rgba(255, 200, 50, 0.18); color: var(--warning-color); }
+.estado-cancelada, .estado-salidaautomatica { background: rgba(255, 200, 50, 0.18); color: var(--warning-color); }
 
 .btn-historial-detail { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); color: var(--text-primary); padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 0.75rem; min-height: 34px; transition: all 0.2s ease; }
 .btn-historial-detail:hover { background: rgba(255, 255, 255, 0.1); }

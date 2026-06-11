@@ -63,50 +63,69 @@ document.addEventListener('DOMContentLoaded', () => {
       navLinks.forEach(l => l.classList.remove('active'));
       link.classList.add('active');
       workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
-      const target = document.getElementById(link.getAttribute('data-target'));
+      const targetId = link.getAttribute('data-target');
+      const target = document.getElementById(targetId);
       if (target) target.classList.remove('hidden-section');
+      if (targetId === 'sec-historial') window.AppState.historial.loadHistorial();
+      if (targetId === 'sec-registro') window.AppState.registro.renderVisitors();
+      if (targetId === 'sec-programacion') window.AppState.programacion.renderProgramadas();
     });
   });
 
-  formLogin.addEventListener('submit', (e) => {
+  async function entrarAlSistema() {
+    viewLogin.classList.remove('fade-in');
+    viewLogin.classList.add('fade-out');
+    setTimeout(() => {
+      viewLogin.classList.add('hidden');
+      viewDashboard.classList.remove('hidden');
+      window.AppState.registro.renderVisitors();
+      window.AppState.programacion.renderProgramadas();
+      workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
+      const registroPanel = document.getElementById('sec-registro');
+      if (registroPanel) registroPanel.classList.remove('hidden-section');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          systemHeader.classList.add('animate-header');
+          setTimeout(() => {
+            workspaceContainer.classList.add('animate-workspace');
+          }, 1200);
+        });
+      });
+    }, 1000);
+  }
+
+  formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
     solicitarPermisoSensores();
 
-    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    if (!username || !password) {
+    if (!email || !password) {
       loginError.textContent = "Complete todos los campos.";
       return;
     }
 
-    if (username === 'admin' && password === 'admin123') {
+    if (email === 'admin' && password === 'admin123') {
       loginError.textContent = "";
-      viewLogin.classList.remove('fade-in');
-      viewLogin.classList.add('fade-out');
+      entrarAlSistema();
+      return;
+    }
 
-      setTimeout(() => {
-        viewLogin.classList.add('hidden');
-        viewDashboard.classList.remove('hidden');
-        window.AppState.registro.renderVisitors();
-        window.AppState.programacion.renderProgramadas();
-        workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
-        const registroPanel = document.getElementById('sec-registro');
-        if (registroPanel) registroPanel.classList.remove('hidden-section');
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            systemHeader.classList.add('animate-header');
-            setTimeout(() => {
-              workspaceContainer.classList.add('animate-workspace');
-            }, 1200);
-          });
-        });
-      }, 1000);
-    } else {
+    toggleLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      loginError.textContent = "";
+      entrarAlSistema();
+    } catch {
       loginError.textContent = "Usuario o contraseña incorrectos.";
+    } finally {
+      toggleLoading(false);
     }
   });
 
-  btnLogout.addEventListener('click', () => {
+  btnLogout.addEventListener('click', async () => {
+    await supabase.auth.signOut().catch(() => {});
     viewDashboard.classList.add('hidden');
     systemHeader.classList.remove('animate-header');
     workspaceContainer.classList.remove('animate-workspace');
@@ -126,5 +145,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  window.AppState.programacion.renderProgramadas();
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) entrarAlSistema();
+  })();
 });

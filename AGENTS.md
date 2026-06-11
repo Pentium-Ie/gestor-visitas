@@ -34,11 +34,20 @@ Sistema web de gestión de visitas con diseño glass-morphism, tres vistas princ
 - **Loader overlay**: estructura preparada para operaciones asíncronas
 - **CSS sin inline styles**: widths de modales pasados a clases `.modal-sm` / `.modal-md`
 
+## Estado de Migración a Supabase (Junio 2026)
+- **Login**: hardcoded (`admin/admin123`) + Supabase Auth (`admin@gestor-visitas.com`) — ambos funcionales
+- **Registro**: INSERT en `en_planta` + `historial` vía Supabase; upsert en `visitantes` y `anfitriones`
+- **Salida**: UPDATE `en_planta.salida_en` + INSERT en `historial` con estado `'salida'`
+- **Programación**: INSERT/UPDATE/DELETE en `programadas` vía Supabase; registro desde programada INSERT en `en_planta` + `historial` con estado `'ingreso_programado'`
+- **Cancelación**: UPDATE `programadas.estado = 'cancelado'` + INSERT en `historial` con estado `'cancelada'`
+- **Historial**: SELECT desde `historial` con ILIKE por columna + filtro rango fechas; JOINs no necesarios (tabla desnormalizada)
+- **Compartido**: `helpers.js` exporta `buscarOCrearVisitante()`, `buscarOCrearAnfitrion()`, `getCurrentUserId()` para todos los módulos
+
 ## Pendientes / Notas
-- El login actual sigue siendo hardcoded; migrar a Supabase Auth para producción
 - El panel de Administración sigue siendo placeholder
 - Sin paginación en historial (para producción con +1000 registros)
 - Sin tests unitarios
+- Autocomplete de anfitriones y auto-relleno de visitantes por documento (futuro)
 
 ## Infraestructura Cloud
 - **Supabase**: proyecto creado (ref: `bygwwnaudkxinytgbmrf`, región `sa-east-1`)
