@@ -34,9 +34,10 @@ Sistema web de gestión de visitas con diseño glass-morphism, persistencia en S
 - **Autocomplete**: anfitriones (3 resultados ILIKE, dropdown fixed), visitante por documento (debounce 300ms, auto-fill nombre+empresa)
 - **Anfitriones**: solo lookup en BD (`buscarAnfitrion`), sin creación desde formulario
 - **`autocomplete="off"`** en formularios para suprimir sugerencias del navegador
-- **Iconos unificados**: `.icon-btn` con `--icon-btn-bg`, `--icon-btn-border`, `--icon-btn-hover-bg`, `--icon-btn-hover-border`; aplicado a ojo de contraseña, cerrar toast, toggle de tema, indicador de calendario
-- **Modo claro/oscuro**: botón ☾/☀ en header, variables CSS en `[data-theme="light"]`, persistencia en `localStorage`
-- **Login Supabase**: implementado con fetch directo (sin CDN supabase-js), toggle de visibilidad de contraseña
+- **Iconos SVG**: reemplazados emojis (👁🙈☾☀✓✕) por SVGs inline (eye, moon, sun, check, cross) en todos los botones y toasts
+- **Bisel gradient en iconos**: `.icon-btn` usa `background-image` dual-layer (color sólido + gradient bisel) con `border: 1.3px solid transparent` para el mismo efecto de borde que los glass-card
+- **Modo claro/oscuro**: botón con icono SVG (sun/moon) en header, variables CSS en `[data-theme="light"]`, persistencia en `localStorage`
+- **Login Supabase**: implementado con fetch directo (sin CDN supabase-js), toggle de visibilidad de contraseña con SVG eye/eye-closed
 - **`perfiles` FK**: `ON DELETE RESTRICT` a `auth.users(id)`
 
 ## Esquema de Datos
