@@ -160,33 +160,51 @@ function base64UrlDecode(str) {
 
 ---
 
-### Preguntas abiertas (para definir implementación)
+### 11. 🟡 Backoff exponencial con reintentos (resuelto)
 
-**1. Offline / Supabase caído (tu pregunta 6.1)**
+**Archivo:** `js/supabase-client.js`
 
-Si Supabase está caído, la app web **no puede funcionar**. Todo depende de la API (visitas, historial, visitantes, anfitriones). Para operar sin conexión se necesita:
-- Service Worker que intercepte fetch y sirva desde cache
-- IndexedDB como almacén local
-- Cola de sincronización cuando vuelva la conexión
+**Decisión:** 3 reintentos máximos, tanto para GET como para POST/PATCH, con toast "Reintentando (1/3)..." visible.
 
-**Complejidad:** ALTA. Semanas de desarrollo.
-**¿Se justifica para <100 visitas/día?** Mi recomendación: **No**. A menos que haya un requisito contractual de operación offline.
+**Implementación:**
+- Nueva función `sleep(ms)` para pausas.
+- Nueva función `isRetryable(err)`: no reintenta errores 4xx (salvo 429 Too Many Requests).
+- Bucle `for (let attempt = 0; attempt <= maxRetries; attempt++)` en `_exec()` y `rpc()`.
+- Delays: 1s → 2s → 4s (exponencial: `2^(attempt-1) * 1000`).
+- En cada reintento: `mostrarToast('Reintentando (X/3)...', 'info')`.
+- Si se agotan los reintentos: `logError('error', ...)` y retorna error final.
+- Si el error no es retryable (ej. 404, 403): falla inmediatamente sin reintentar.
 
-**2. Backoff exponencial (tu pregunta 6.2)**
+---
 
-Backoff = cuando una request falla por error transitorio (timeout, 503), se reintenta automáticamente con una pausa que crece en cada intento:
-- 1er reintento: esperar 1s
-- 2do reintento: esperar 2s
-- 3er reintento: esperar 4s
-- 4to reintento: esperar 8s
+### Archivos modificados (final)
 
-**Preguntas para definir:**
-- ¿Cuántos reintentos máximos? (3, 5, 10?)
-- ¿Solo para GET (lectura de listas/detalles) o también POST/PATCH (escritura de visitas)?
-- ¿El usuario debe ver algo mientras se reintenta (spinner, toast) o debe ser transparente?
+| Archivo | Cambios |
+|---------|---------|
+| `js/supabase-client.js` | base64UrlDecode, getSession con refresh, sleep(), isRetryable(), _exec() y rpc() con retry loop 3 intentos + 401 retry |
+| `js/helpers.js` | disableButton(), enableButton(), logError(), getLimaNow(), getLimaDateStr() |
+| `js/app.js` | Lockout intentos login, re-login 8AM Lima, initSessionCheck con daily verify |
+| `js/registro.js` | disableButton/enableButton en submit y checkout + logError en catch blocks |
+| `js/programacion.js` | disableButton/enableButton en submit, cancel, confirm + logError en catch blocks |
+| `js/admin.js` | Render logs de error desde localStorage + botón limpiar |
+| `index.html` | Meta tags safe area, theme-color, apple-mobile-web-app |
+| `css/variables.css` | --safe-* variables |
+| `css/base.css` | body padding con safe-area |
+| `css/components.css` | select → .grid-form select (scope reducido) |
+| `css/historial.css` | option usa variable CSS, select mantiene comportamiento nativo |
+| `css/responsive.css` | Body padding safe-area en móvil |
+| `MEJORAS.md` | Documentación de todos los cambios |
 
-**3. MFA (tu pregunta 3.2)**
+---
 
-MFA = Multi-Factor Authentication = además de contraseña, pedir un código de 6 dígitos (Google Authenticator, SMS). Supabase lo soporta nativo.
+### Decisiones tomadas
 
-Dijiste que no hay datos sensibles (3.3 = no). **No se necesita MFA.** El lockout de 4 intentos + re-login diario es suficiente para este caso de uso.
+| Tema | Decisión |
+|------|----------|
+| Offline | ❌ No implementar. App depende 100% de Supabase. Sin Service Worker. |
+| Backoff | ✅ 3 reintentos, ambos verbos, toast visible, delays 1s/2s/4s |
+| MFA | ❌ No necesario (sin datos sensibles). Lockout 4 intentos + re-login diario es suficiente. |
+
+### Preguntas cerradas
+
+Las 3 preguntas abiertas han sido respondidas. No quedan puntos pendientes.

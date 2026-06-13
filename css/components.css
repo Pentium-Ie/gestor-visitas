@@ -156,6 +156,7 @@ input[type="datetime-local"]::-webkit-datetime-edit-minute-field { color: var(--
 .toast-close { padding: 4px 6px; flex-shrink: 0; }
 .toast-success .toast-icon { color: var(--success-color); }
 .toast-error .toast-icon { color: var(--danger-color); }
+.toast-info .toast-icon { color: var(--warning-color); }
 @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
 

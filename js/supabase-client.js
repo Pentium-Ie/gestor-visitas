@@ -42,6 +42,15 @@ function restHeaders() {
   return h;
 }
 
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function isRetryable(err) {
+  if (!err || !err.message) return true;
+  const m = err.message;
+  if (/Supabase (4(?!29)\d{2})/.test(m)) return false;
+  return true;
+}
+
 function buildQuery(table, q) {
   const p = new URLSearchParams();
   if (q.select && q.select !== '*') p.set('select', q.select);
@@ -65,27 +74,35 @@ function queryBuilder(table, q = { select: '*', filters: [], limit: null, orderC
     single() { q.limit = 1; return b._exec().then(d => d.data?.[0] ? { data: d.data[0], error: null } : { data: null, error: new Error('Not found') }); },
     then(resolve, reject) { return b._exec().then(resolve, reject); },
     async _exec() {
-      try {
-        if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
-        const opts = { headers: restHeaders() };
-        if (q.method === 'POST') { opts.method = 'POST'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
-        else if (q.method === 'PATCH') { opts.method = 'PATCH'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
-        else if (q.method === 'DELETE') { opts.method = 'DELETE'; }
-        const url = q.method === 'POST' ? `${buildQuery(table, q)}` : buildQuery(table, q);
-        const res = await fetch(url, opts);
-        if (res.status === 401 && await refreshSession()) {
-          opts.headers = restHeaders();
-          const res2 = await fetch(url, opts);
-          if (!res2.ok) { const txt = await res2.text().catch(() => ''); throw new Error(`Supabase ${res2.status}: ${txt}`); }
-          const data = res2.status === 204 ? null : await res2.json();
-          return { data, error: null };
+      const maxRetries = 3;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 0) {
+            if (typeof mostrarToast === 'function') mostrarToast(`Reintentando (${attempt}/${maxRetries})...`, 'info');
+            await sleep(Math.pow(2, attempt - 1) * 1000);
+          }
+          if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
+          const opts = { headers: restHeaders() };
+          if (q.method === 'POST') { opts.method = 'POST'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
+          else if (q.method === 'PATCH') { opts.method = 'PATCH'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
+          else if (q.method === 'DELETE') { opts.method = 'DELETE'; }
+          const url = q.method === 'POST' ? `${buildQuery(table, q)}` : buildQuery(table, q);
+          const res = await fetch(url, opts);
+          if (res.status === 401 && await refreshSession()) {
+            opts.headers = restHeaders();
+            const res2 = await fetch(url, opts);
+            if (!res2.ok) throw new Error(`Supabase ${res2.status}`);
+            return { data: res2.status === 204 ? null : await res2.json(), error: null };
+          }
+          if (!res.ok) throw new Error(`Supabase ${res.status}`);
+          return { data: res.status === 204 ? null : await res.json(), error: null };
+        } catch (e) {
+          if (attempt >= maxRetries || !isRetryable(e)) {
+            if (typeof logError === 'function') logError('error', `Supabase ${q.method || 'GET'} ${table}`, e.message);
+            return { data: null, error: e };
+          }
+          if (typeof logError === 'function') logError('warn', `Supabase ${q.method || 'GET'} ${table} (reintento ${attempt + 1}/${maxRetries})`, e.message);
         }
-        if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`Supabase ${res.status}: ${txt}`); }
-        const data = res.status === 204 ? null : await res.json();
-        return { data, error: null };
-      } catch (e) {
-        if (typeof logError === 'function') logError('error', `Supabase ${q.method || 'GET'} ${table}`, e.message);
-        return { data: null, error: e };
       }
     }
   };
@@ -163,25 +180,33 @@ const supabase = {
   },
   rpc(fn, params) {
     return (async () => {
-      if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
-      try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
-          method: 'POST',
-          headers: restHeaders(),
-          body: JSON.stringify(params || {})
-        });
-        if (res.status === 401 && await refreshSession()) {
-          const res2 = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      const maxRetries = 3;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          if (attempt > 0) {
+            if (typeof mostrarToast === 'function') mostrarToast(`Reintentando (${attempt}/${maxRetries})...`, 'info');
+            await sleep(Math.pow(2, attempt - 1) * 1000);
+          }
+          if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
             method: 'POST', headers: restHeaders(), body: JSON.stringify(params || {})
           });
-          const data = res2.ok ? await res2.json().catch(() => null) : null;
-          return { data, error: res2.ok ? null : new Error(`Supabase ${res2.status}`) };
+          if (res.status === 401 && await refreshSession()) {
+            const res2 = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+              method: 'POST', headers: restHeaders(), body: JSON.stringify(params || {})
+            });
+            if (!res2.ok) throw new Error(`Supabase ${res2.status}`);
+            return { data: await res2.json().catch(() => null), error: null };
+          }
+          if (!res.ok) throw new Error(`Supabase ${res.status}`);
+          return { data: await res.json().catch(() => null), error: null };
+        } catch (e) {
+          if (attempt >= maxRetries || !isRetryable(e)) {
+            if (typeof logError === 'function') logError('error', `Supabase RPC ${fn}`, e.message);
+            return { data: null, error: e };
+          }
+          if (typeof logError === 'function') logError('warn', `Supabase RPC ${fn} (reintento ${attempt + 1}/${maxRetries})`, e.message);
         }
-        const data = res.ok ? await res.json().catch(() => null) : null;
-        return { data, error: res.ok ? null : new Error(`Supabase ${res.status}`) };
-      } catch (e) {
-        if (typeof logError === 'function') logError('error', `Supabase RPC ${fn}`, e.message);
-        return { data: null, error: e };
       }
     })();
   }
