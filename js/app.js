@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   togglePassword?.addEventListener('click', () => {
     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
     passwordInput.setAttribute('type', type);
-    togglePassword.textContent = type === 'password' ? '👁' : '🙈';
+    togglePassword.innerHTML = type === 'password' ? ICONS.eyeOpen : ICONS.eyeClosed;
     togglePassword.setAttribute('aria-label', type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña');
   });
 
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
     if (btnThemeToggle) {
-      btnThemeToggle.textContent = theme === 'light' ? '☀' : '☾';
+      btnThemeToggle.innerHTML = theme === 'light' ? ICONS.sun : ICONS.moon;
       btnThemeToggle.setAttribute('aria-label', theme === 'light' ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro');
     }
   }
