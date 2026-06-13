@@ -18,16 +18,17 @@
   let visitasProgramadas = [];
   let selectedProgramacionId = null;
   let programacionToRegister = null;
+  let editandoId = null;
 
   async function renderProgramadas() {
     if (!scheduledVisitorsList) return;
     toggleLoading(true);
     try {
       const { data, error } = await supabase
-        .from('programadas')
-        .select('id, motivo, fecha, estado, visitantes!inner(id, tipo_doc, num_doc, nombre, empresa), anfitriones!left(nombre)')
-        .eq('estado', 'pendiente')
-        .order('fecha', { ascending: true });
+        .from('visitas')
+        .select('*, visitantes!inner(*), anfitriones!left(*)')
+        .eq('estado', 'programado')
+        .order('fecha_programada', { ascending: true });
       if (error) throw error;
       visitasProgramadas = data || [];
       renderList();
@@ -50,7 +51,7 @@
       const anfitrionNombre = visita.anfitriones?.nombre || '—';
       const card = document.createElement('div');
       card.className = 'scheduled-card';
-      const fechaLocal = new Date(visita.fecha);
+      const fechaLocal = new Date(visita.fecha_programada);
       const fechaStr = fechaLocal.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
       const horaStr = fechaLocal.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
       card.innerHTML = `
@@ -66,7 +67,7 @@
 
   scheduledVisitorsList.addEventListener('click', (e) => {
     const btn = e.target.closest('.btn-detail');
-    if (btn) openDetailModal(parseInt(btn.getAttribute('data-id')));
+    if (btn) openDetailModal(btn.getAttribute('data-id'));
   });
 
   function openDetailModal(id) {
@@ -75,7 +76,7 @@
     selectedProgramacionId = id;
     const v = visita.visitantes;
     const anfitrionNombre = visita.anfitriones?.nombre || '—';
-    const fechaLocal = new Date(visita.fecha);
+    const fechaLocal = new Date(visita.fecha_programada);
     const fechaStr = fechaLocal.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
     const horaStr = fechaLocal.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
     detailContent.innerHTML = `
@@ -92,11 +93,11 @@
 
   formProgramacion.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!validarFormulario(['prog-nombre', 'prog-numdoc', 'prog-anfitrion'])) return;
+    if (!validarFormulario(['prog-nombre', 'prog-numdoc', 'prog-motivo', 'prog-anfitrion'])) return;
     const fecha = document.getElementById('prog-fecha').value;
     if (!fecha) return;
     const fechaVisita = new Date(fecha);
-    if (fechaVisita < new Date()) { alert('La fecha debe ser futura.'); return; }
+    if (fechaVisita < new Date()) { mostrarToast('La fecha debe ser futura.', 'error'); return; }
 
     const tipoDoc = document.getElementById('prog-tipodoc').value;
     const numDoc = document.getElementById('prog-numdoc').value.trim();
@@ -108,22 +109,79 @@
     toggleLoading(true);
     try {
       const visitanteId = await buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa);
-      const anfitrionId = await buscarOCrearAnfitrion(anfitrionInput);
+      const anfitrionId = await buscarAnfitrion(anfitrionInput);
+      if (!anfitrionId) { mostrarToast('Seleccione un anfitrión válido de la lista.', 'error'); toggleLoading(false); return; }
       const userId = await getCurrentUserId();
 
-      const { error } = await supabase.from('programadas').insert({
-        visitante_id: visitanteId, motivo: motivo || null,
-        anfitrion_id: anfitrionId, fecha: new Date(fecha).toISOString(),
-        creado_por: userId
-      });
-      if (error) throw error;
+      if (editandoId) {
+        const { error: upErr } = await supabase.from('visitas').update({
+          fecha_programada: new Date(fecha).toISOString(),
+          motivo: motivo || null,
+          anfitrion_id: anfitrionId
+        }).eq('id', editandoId);
+        if (upErr) throw upErr;
+
+        const { error: histErr } = await supabase.from('historial').insert({
+          visita_id: editandoId,
+          visitante_id: visitanteId,
+          tipo_doc: tipoDoc,
+          num_doc: numDoc,
+          nombre: nombre,
+          empresa: empresa,
+          motivo: motivo || null,
+          anfitrion_id: anfitrionId,
+          anfitrion_nombre: anfitrionInput,
+          estado: 'reprogramado',
+          obs: '',
+          fecha: new Date().toISOString(),
+          fecha_programada: new Date(fecha).toISOString(),
+          creado_por: userId,
+          grupo_id: generarUUID()
+        });
+        if (histErr) throw histErr;
+
+        editandoId = null;
+        mostrarToast('Visita reprogramada correctamente.');
+      } else {
+        const { data: nuevaVisita, error: insErr } = await supabase.from('visitas').insert({
+          visitante_id: visitanteId,
+          anfitrion_id: anfitrionId,
+          motivo: motivo || null,
+          fecha_programada: new Date(fecha).toISOString(),
+          estado: 'programado',
+          creado_por: userId
+        }).select('id').single();
+        if (insErr) throw insErr;
+
+        const grupoId = generarUUID();
+        const { error: histErr } = await supabase.from('historial').insert({
+          visita_id: nuevaVisita.id,
+          visitante_id: visitanteId,
+          tipo_doc: tipoDoc,
+          num_doc: numDoc,
+          nombre: nombre,
+          empresa: empresa,
+          motivo: motivo || null,
+          anfitrion_id: anfitrionId,
+          anfitrion_nombre: anfitrionInput,
+          estado: 'programado',
+          obs: '',
+          fecha: new Date().toISOString(),
+          fecha_programada: new Date(fecha).toISOString(),
+          creado_por: userId,
+          grupo_id: grupoId
+        });
+        if (histErr) throw histErr;
+
+        mostrarToast('Visita programada correctamente.');
+      }
 
       formProgramacion.reset();
       document.querySelectorAll('#form-programacion input, #form-programacion select, #form-programacion textarea').forEach(el => el.style.borderColor = '');
       await renderProgramadas();
     } catch (err) {
       console.error('Error agendando visita:', err);
-      alert('Error al agendar visita.');
+      mostrarToast('Error al agendar visita.', 'error');
     } finally {
       toggleLoading(false);
     }
@@ -143,15 +201,12 @@
     document.getElementById('prog-empresa').value = v.empresa;
     document.getElementById('prog-motivo').value = visita.motivo || '';
     document.getElementById('prog-anfitrion').value = visita.anfitriones?.nombre || '';
-    document.getElementById('prog-fecha').value = visita.fecha.slice(0, 16);
+    document.getElementById('prog-fecha').value = visita.fecha_programada.slice(0, 16);
+    editandoId = visita.id;
     cerrarModal(modalDetalle);
     selectedProgramacionId = null;
     const navProgramacion = document.querySelector('.nav-link[data-target="sec-programacion"]');
     if (navProgramacion) navProgramacion.click();
-    setTimeout(async () => {
-      await supabase.from('programadas').delete().eq('id', visita.id);
-      await renderProgramadas();
-    }, 100);
   });
 
   detailRegister.addEventListener('click', () => {
@@ -178,25 +233,35 @@
       const v = visita.visitantes;
       const userId = await getCurrentUserId();
 
-      const { error: upErr } = await supabase.from('programadas').update({ estado: 'cancelado' }).eq('id', selectedProgramacionId);
+      const { error: upErr } = await supabase.from('visitas').update({ estado: 'cancelado' }).eq('id', selectedProgramacionId);
       if (upErr) throw upErr;
 
       const { error: histErr } = await supabase.from('historial').insert({
-        visitante_id: v.id, tipo_doc: v.tipo_doc, num_doc: v.num_doc,
-        nombre: v.nombre, empresa: v.empresa, motivo: visita.motivo || null,
+        visita_id: selectedProgramacionId,
+        visitante_id: v.id,
+        tipo_doc: v.tipo_doc,
+        num_doc: v.num_doc,
+        nombre: v.nombre,
+        empresa: v.empresa,
+        motivo: visita.motivo || null,
         anfitrion_id: visita.anfitrion_id,
         anfitrion_nombre: visita.anfitriones?.nombre || '—',
-        estado: 'cancelada', obs: '', fecha: new Date().toISOString(),
-        fecha_programada: visita.fecha, programada_id: visita.id, creado_por: userId
+        estado: 'cancelada',
+        obs: '',
+        fecha: new Date().toISOString(),
+        fecha_programada: visita.fecha_programada,
+        creado_por: userId,
+        grupo_id: generarUUID()
       });
       if (histErr) throw histErr;
 
       cerrarModal(modalDetalle);
       selectedProgramacionId = null;
       await renderProgramadas();
+      mostrarToast('Visita cancelada correctamente.');
     } catch (err) {
       console.error('Error cancelando visita:', err);
-      alert('Error al cancelar.');
+      mostrarToast('Error al cancelar.', 'error');
     } finally {
       toggleLoading(false);
     }
@@ -214,38 +279,62 @@
       const v = visita.visitantes;
       const userId = await getCurrentUserId();
 
-      const { error: upErr } = await supabase.from('programadas').update({ estado: 'completado' }).eq('id', visita.id);
+      const { error: upErr } = await supabase.from('visitas').update({
+        estado: 'ingresado',
+        fecha_ingreso: new Date().toISOString(),
+        obs_ingreso: obs
+      }).eq('id', visita.id);
       if (upErr) throw upErr;
 
-      const { data: ep, error: epErr } = await supabase.from('en_planta').insert({
-        visitante_id: v.id, motivo: visita.motivo || null,
-        anfitrion_id: visita.anfitrion_id, obs_ingreso: obs,
-        programada_id: visita.id, creado_por: userId
-      }).select('id, ingreso_en').single();
-      if (epErr) throw epErr;
-
+      const grupoId = generarUUID();
       const { error: histErr } = await supabase.from('historial').insert({
-        visitante_id: v.id, tipo_doc: v.tipo_doc, num_doc: v.num_doc,
-        nombre: v.nombre, empresa: v.empresa, motivo: visita.motivo || null,
+        visita_id: visita.id,
+        visitante_id: v.id,
+        tipo_doc: v.tipo_doc,
+        num_doc: v.num_doc,
+        nombre: v.nombre,
+        empresa: v.empresa,
+        motivo: visita.motivo || null,
         anfitrion_id: visita.anfitrion_id,
         anfitrion_nombre: visita.anfitriones?.nombre || '—',
-        estado: 'ingreso_programado', obs, fecha: ep.ingreso_en,
-        fecha_programada: visita.fecha, programada_id: visita.id, creado_por: userId
+        estado: 'ingreso_programado',
+        obs,
+        fecha: new Date().toISOString(),
+        fecha_programada: visita.fecha_programada,
+        creado_por: userId,
+        grupo_id: grupoId
       });
       if (histErr) throw histErr;
 
       cerrarModal(modalConfirmarRegistro);
       programacionToRegister = null;
       await renderProgramadas();
-      await window.AppState.registro.renderVisitors();
-      alert('Visita registrada correctamente en Planta.');
+      if (window.AppState.registro && typeof window.AppState.registro.renderVisitors === 'function') {
+        await window.AppState.registro.renderVisitors();
+      }
+      mostrarToast('Visita registrada correctamente en Planta.');
     } catch (err) {
       console.error('Error registrando ingreso desde programada:', err);
-      alert('Error al registrar ingreso.');
+      mostrarToast('Error al registrar ingreso.', 'error');
     } finally {
       toggleLoading(false);
     }
   });
+
+  let docTimeout;
+  document.getElementById('prog-numdoc').addEventListener('input', () => {
+    clearTimeout(docTimeout);
+    docTimeout = setTimeout(async () => {
+      const tipoDoc = document.getElementById('prog-tipodoc').value;
+      const numDoc = document.getElementById('prog-numdoc').value.trim();
+      const visitante = await buscarVisitantePorDoc(tipoDoc, numDoc);
+      if (visitante) {
+        document.getElementById('prog-nombre').value = visitante.nombre;
+        document.getElementById('prog-empresa').value = visitante.empresa === 'Particular' ? '' : visitante.empresa;
+      }
+    }, 300);
+  });
+  initAutocomplete('prog-anfitrion', 'anfitriones', 'nombre');
 
   window.AppState = window.AppState || {};
   window.AppState.programacion = { renderProgramadas };

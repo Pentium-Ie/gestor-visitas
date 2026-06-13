@@ -66,17 +66,17 @@
 
             <section class="form-section">
               <h3>Registro de Visitas</h3>
-              <form id="form-registro" class="grid-form">
+<form id="form-registro" class="grid-form" autocomplete="off">
                 <div class="input-group">
-                  <label for="reg-tipodoc">Tipo Documento</label>
+                  <label for="reg-tipodoc">Tipo Doc.</label>
                   <select id="reg-tipodoc">
                     <option value="DNI">DNI</option>
-                    <option value="CE">Carnet de Extranjería</option>
-                    <option value="PAS">Pasaporte</option>
+                    <option value="CE">CE</option>
+                    <option value="Pasaporte">Pasaporte</option>
                   </select>
                 </div>
                 <div class="input-group">
-                  <label for="reg-numdoc">Nro. Documento</label>
+                  <label for="reg-numdoc">N° Documento</label>
                   <input type="text" id="reg-numdoc" placeholder="12345678" required>
                 </div>
                 <div class="input-group full-width">
@@ -89,7 +89,7 @@
                 </div>
                 <div class="input-group">
                   <label for="reg-motivo">Motivo de Visita</label>
-                  <input type="text" id="reg-motivo" placeholder="Reunión de trabajo">
+                  <input type="text" id="reg-motivo" placeholder="Reunión de trabajo" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="reg-anfitrion">¿A quién visita?</label>
@@ -173,7 +173,7 @@
 
             <section class="form-section">
               <h3>Agendar Visita</h3>
-              <form id="form-programacion" class="grid-form">
+              <form id="form-programacion" class="grid-form" autocomplete="off">
                 <div class="input-group">
                   <label for="prog-tipodoc">Tipo Documento</label>
                   <select id="prog-tipodoc">
@@ -196,7 +196,7 @@
                 </div>
                 <div class="input-group">
                   <label for="prog-motivo">Motivo de Visita</label>
-                  <input type="text" id="prog-motivo" placeholder="Reunión de trabajo">
+                  <input type="text" id="prog-motivo" placeholder="Reunión de trabajo" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="prog-anfitrion">¿A quién visita?</label>
@@ -304,6 +304,8 @@
       <span class="sr-only">Cargando...</span>
     </div>
 
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
   </div>
 
   <script src="js/helpers.js"></script>
@@ -311,6 +313,7 @@
   <script src="js/historial.js"></script>
   <script src="js/registro.js"></script>
   <script src="js/programacion.js"></script>
+  <script src="js/admin.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

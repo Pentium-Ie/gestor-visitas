@@ -28,17 +28,19 @@
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  text-align: left;
+  text-align: center;
   padding: 10px 12px;
   background: rgba(13, 14, 18, 0.95);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   white-space: nowrap;
+  vertical-align: middle;
 }
 .historial-table td {
   padding: 10px 12px;
   color: var(--text-primary);
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   vertical-align: middle;
+  text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

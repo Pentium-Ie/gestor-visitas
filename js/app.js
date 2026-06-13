@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('mousemove', (e) => {
     if (!reflejoTicking) {
       window.requestAnimationFrame(() => {
-        const visibleCards = document.querySelectorAll('.glass-card:not(.hidden-section)');
+        const visibleCards = document.querySelectorAll('.glass-card:not(.hidden-section), .toast-container .toast');
         visibleCards.forEach(card => {
           const rect = card.getBoundingClientRect();
           const angle = Math.atan2(e.clientY - (rect.top + rect.height / 2), e.clientX - (rect.left + rect.width / 2)) * (180 / Math.PI);
@@ -77,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetId === 'sec-historial') window.AppState.historial.loadHistorial();
       if (targetId === 'sec-registro') window.AppState.registro.renderVisitors();
       if (targetId === 'sec-programacion') window.AppState.programacion.renderProgramadas();
+      if (targetId === 'sec-admin') window.AppState.admin.loadLog();
     });
   });
 
