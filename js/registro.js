@@ -1,5 +1,6 @@
 (function() {
   const formRegistro = document.getElementById('form-registro');
+  const regSubmitBtn = formRegistro?.querySelector('.btn-submit');
   const activeVisitorsList = document.getElementById('active-visitors-list');
 
   const modal = document.getElementById('modal-salida');
@@ -29,6 +30,7 @@
       renderList();
     } catch (err) {
       console.error('Error cargando visitas activas:', err);
+      logError('error', 'Error cargando visitas activas', err.message);
       activeVisitorsList.innerHTML = '<p class="empty-state">Error al cargar datos.</p>';
     } finally {
       toggleLoading(false);
@@ -108,6 +110,7 @@
     if (duplicado) { mostrarToast('Esta persona ya se encuentra registrada en planta.', 'error'); return; }
 
     toggleLoading(true);
+    disableButton(regSubmitBtn, 'Registrando...');
     try {
       const visitanteId = await buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa);
       const anfitrionId = await buscarAnfitrion(anfitrionInput);
@@ -137,9 +140,11 @@
       mostrarToast('Ingreso registrado correctamente.');
     } catch (err) {
       console.error('Error registrando ingreso:', err);
+      logError('error', 'Error registrando ingreso', err.message);
       mostrarToast('Error al registrar ingreso.', 'error');
     } finally {
       toggleLoading(false);
+      enableButton(regSubmitBtn);
     }
   });
 
@@ -150,6 +155,7 @@
     if (obs.length < 4) { mostrarToast('La observación de salida debe tener al menos 4 caracteres.', 'error'); return; }
 
     toggleLoading(true);
+    disableButton(modalConfirm, 'Registrando...');
     try {
       const entry = visitasActivas.find(p => p.id === visitorToCheckoutId);
       if (!entry) throw new Error('Visita no encontrada');
@@ -182,9 +188,11 @@
       mostrarToast('Salida registrada correctamente.');
     } catch (err) {
       console.error('Error registrando salida:', err);
+      logError('error', 'Error registrando salida', err.message);
       mostrarToast('Error al registrar salida.', 'error');
     } finally {
       toggleLoading(false);
+      enableButton(modalConfirm);
     }
   });
 

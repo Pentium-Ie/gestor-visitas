@@ -122,6 +122,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1000);
   }
 
+  async function verificarBloqueoLogin(email) {
+    const key = `loginBlockedUntil_${email}`;
+    const blocked = localStorage.getItem(key);
+    if (blocked && Date.now() < parseInt(blocked, 10)) {
+      const restante = Math.ceil((parseInt(blocked, 10) - Date.now()) / 60000);
+      loginError.textContent = `Demasiados intentos. Intente de nuevo en ${restante} minuto(s).`;
+      return true;
+    }
+    if (blocked) localStorage.removeItem(key);
+    return false;
+  }
+
+  function registrarIntentoFallido(email) {
+    const countKey = `loginAttempts_${email}`;
+    const blockKey = `loginBlockedUntil_${email}`;
+    let attempts = parseInt(localStorage.getItem(countKey) || '0', 10) + 1;
+    localStorage.setItem(countKey, String(attempts));
+    if (attempts >= 4) {
+      localStorage.setItem(blockKey, String(Date.now() + 15 * 60 * 1000));
+      localStorage.removeItem(countKey);
+      logError('warn', `Login bloqueado para ${email} tras 4 intentos fallidos`);
+    }
+  }
+
+  function limpiarIntentosLogin(email) {
+    localStorage.removeItem(`loginAttempts_${email}`);
+    localStorage.removeItem(`loginBlockedUntil_${email}`);
+  }
+
+  function verificarReLoginDiario() {
+    const sessionStarted = localStorage.getItem('sessionStartedAt');
+    if (!sessionStarted) return false;
+    const lima = getLimaNow();
+    const hora = lima.getHours();
+    const fechaSession = sessionStarted.slice(0, 10);
+    const hoy = getLimaDateStr();
+    if (hora >= 8 && fechaSession < hoy) {
+      logError('info', 'Sesión expirada por re-login diario (8 AM Lima)');
+      return true;
+    }
+    return false;
+  }
+
   formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
     solicitarPermisoSensores();
@@ -133,17 +176,25 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    if (await verificarBloqueoLogin(email)) return;
+
     toggleLoading(true);
+    disableButton(formLogin.querySelector('.btn-submit'), 'Ingresando...');
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      limpiarIntentosLogin(email);
+      localStorage.setItem('sessionStartedAt', new Date().toISOString());
       loginError.textContent = "";
       entrarAlSistema();
     } catch (err) {
       console.error('Login error:', err);
+      registrarIntentoFallido(email);
       loginError.textContent = err.message || "Usuario o contraseña incorrectos.";
+      logError('error', 'Login fallido', err.message);
     } finally {
       toggleLoading(false);
+      enableButton(formLogin.querySelector('.btn-submit'));
     }
   });
 
@@ -169,6 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   (async () => {
+    if (verificarReLoginDiario()) {
+      await supabase.auth.signOut().catch(() => {});
+      localStorage.removeItem('sb-access-token');
+      localStorage.removeItem('sb-refresh-token');
+      localStorage.removeItem('sessionStartedAt');
+      return;
+    }
     const { data: { session } } = await supabase.auth.getSession();
     if (session) entrarAlSistema();
   })();

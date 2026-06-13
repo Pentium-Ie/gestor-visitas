@@ -32,6 +32,19 @@ function toggleLoading(mostrar) {
   if (loader) loader.classList.toggle('hidden', !mostrar);
 }
 
+function disableButton(btn, texto) {
+  if (!btn) return;
+  btn.dataset.origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = texto || 'Procesando...';
+}
+
+function enableButton(btn) {
+  if (!btn) return;
+  btn.disabled = false;
+  btn.textContent = btn.dataset.origText || btn.textContent;
+}
+
 function focusTrap(modalEl) {
   const focusables = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   const first = focusables[0];
@@ -169,4 +182,25 @@ async function buscarAnfitrion(nombre) {
     .ilike('nombre', nombre.trim())
     .limit(1);
   return (data && data.length > 0) ? data[0].id : null;
+}
+
+function logError(nivel, mensaje, detalle) {
+  const logs = JSON.parse(localStorage.getItem('appLogs') || '[]');
+  logs.unshift({
+    fecha: new Date().toISOString(),
+    nivel: nivel || 'error',
+    mensaje: String(mensaje),
+    detalle: detalle ? String(detalle).substring(0, 500) : ''
+  });
+  if (logs.length > 200) logs.length = 200;
+  localStorage.setItem('appLogs', JSON.stringify(logs));
+  console.error(`[${nivel}] ${mensaje}`, detalle || '');
+}
+
+function getLimaNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+}
+
+function getLimaDateStr() {
+  return getLimaNow().toISOString().slice(0, 10);
 }

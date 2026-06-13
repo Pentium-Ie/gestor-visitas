@@ -5,7 +5,7 @@
 }
 
 @media (max-width: 768px) {
-  body { overflow-y: auto; }
+  body { overflow-y: auto; padding: calc(var(--safe-top, 0px) + 10px) var(--safe-right, 0px) var(--safe-bottom, 0px) var(--safe-left, 0px); }
   .canvas { align-items: flex-start; padding: 15px 0; height: auto; min-height: 100vh; }
   .layout-login { width: 90%; max-width: 360px; height: auto; position: relative; margin: auto; }
   .layout-login .glass-content { padding: 35px 0; }

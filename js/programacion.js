@@ -1,5 +1,6 @@
 (function() {
   const formProgramacion = document.getElementById('form-programacion');
+  const progSubmitBtn = formProgramacion?.querySelector('.btn-submit');
   const scheduledVisitorsList = document.getElementById('scheduled-visitors-list');
 
   const modalDetalle = document.getElementById('modal-detalle');
@@ -34,6 +35,7 @@
       renderList();
     } catch (err) {
       console.error('Error cargando programadas:', err);
+      logError('error', 'Error cargando programadas', err.message);
       scheduledVisitorsList.innerHTML = '<p class="empty-state">Error al cargar datos.</p>';
     } finally {
       toggleLoading(false);
@@ -107,10 +109,11 @@
     const anfitrionInput = document.getElementById('prog-anfitrion').value.trim();
 
     toggleLoading(true);
+    disableButton(progSubmitBtn, editandoId ? 'Reprogramando...' : 'Agendando...');
     try {
       const visitanteId = await buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa);
       const anfitrionId = await buscarAnfitrion(anfitrionInput);
-      if (!anfitrionId) { mostrarToast('Seleccione un anfitrión válido de la lista.', 'error'); toggleLoading(false); return; }
+      if (!anfitrionId) { mostrarToast('Seleccione un anfitrión válido de la lista.', 'error'); toggleLoading(false); enableButton(progSubmitBtn); return; }
       const userId = await getCurrentUserId();
 
       if (editandoId) {
@@ -181,9 +184,11 @@
       await renderProgramadas();
     } catch (err) {
       console.error('Error agendando visita:', err);
+      logError('error', 'Error agendando visita', err.message);
       mostrarToast('Error al agendar visita.', 'error');
     } finally {
       toggleLoading(false);
+      enableButton(progSubmitBtn);
     }
   });
 
@@ -229,6 +234,7 @@
     if (!confirm(`¿Cancelar la visita programada de ${visita.visitantes.nombre}?`)) return;
 
     toggleLoading(true);
+    disableButton(detailCancelar, 'Cancelando...');
     try {
       const v = visita.visitantes;
       const userId = await getCurrentUserId();
@@ -261,9 +267,11 @@
       mostrarToast('Visita cancelada correctamente.');
     } catch (err) {
       console.error('Error cancelando visita:', err);
+      logError('error', 'Error cancelando visita', err.message);
       mostrarToast('Error al cancelar.', 'error');
     } finally {
       toggleLoading(false);
+      enableButton(detailCancelar);
     }
   });
 
@@ -274,6 +282,7 @@
     const obs = confirmObs.value.trim();
 
     toggleLoading(true);
+    disableButton(confirmOk, 'Registrando...');
     try {
       const visita = programacionToRegister;
       const v = visita.visitantes;
@@ -315,9 +324,11 @@
       mostrarToast('Visita registrada correctamente en Planta.');
     } catch (err) {
       console.error('Error registrando ingreso desde programada:', err);
+      logError('error', 'Error registrando ingreso desde programada', err.message);
       mostrarToast('Error al registrar ingreso.', 'error');
     } finally {
       toggleLoading(false);
+      enableButton(confirmOk);
     }
   });
 

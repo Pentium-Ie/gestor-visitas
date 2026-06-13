@@ -1,11 +1,19 @@
 const SUPABASE_URL = 'https://bygwwnaudkxinytgbmrf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5Z3d3bmF1ZGt4aW55dGdibXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMTE2ODAsImV4cCI6MjA5NjY4NzY4MH0.wseeLbw7MT5_z1ne6zlv55rcVzoJEihZfOlzj5ZxiMs';
 
+function base64UrlDecode(str) {
+  str = str.replace(/-/g, '+').replace(/_/g, '/');
+  while (str.length % 4) str += '=';
+  return str;
+}
+
 function getTokenExpiry() {
   const token = localStorage.getItem('sb-access-token');
   if (!token) return 0;
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const parts = token.split('.');
+    if (parts.length < 2) return 0;
+    const payload = JSON.parse(atob(base64UrlDecode(parts[1])));
     return (payload.exp || 0) * 1000;
   } catch { return 0; }
 }
@@ -75,7 +83,10 @@ function queryBuilder(table, q = { select: '*', filters: [], limit: null, orderC
         if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`Supabase ${res.status}: ${txt}`); }
         const data = res.status === 204 ? null : await res.json();
         return { data, error: null };
-      } catch (e) { return { data: null, error: e }; }
+      } catch (e) {
+        if (typeof logError === 'function') logError('error', `Supabase ${q.method || 'GET'} ${table}`, e.message);
+        return { data: null, error: e };
+      }
     }
   };
   return b;
@@ -117,7 +128,13 @@ const supabase = {
       }
     },
     async getSession() {
-      const token = localStorage.getItem('sb-access-token');
+      let token = localStorage.getItem('sb-access-token');
+      const refresh = localStorage.getItem('sb-refresh-token');
+      if (!token && refresh) {
+        const ok = await refreshSession();
+        if (!ok) return { data: { session: null } };
+        token = localStorage.getItem('sb-access-token');
+      }
       if (!token) return { data: { session: null } };
       if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
       const t = localStorage.getItem('sb-access-token');
@@ -162,7 +179,10 @@ const supabase = {
         }
         const data = res.ok ? await res.json().catch(() => null) : null;
         return { data, error: res.ok ? null : new Error(`Supabase ${res.status}`) };
-      } catch (e) { return { data: null, error: e }; }
+      } catch (e) {
+        if (typeof logError === 'function') logError('error', `Supabase RPC ${fn}`, e.message);
+        return { data: null, error: e };
+      }
     })();
   }
 };

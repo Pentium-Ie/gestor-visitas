@@ -13,7 +13,7 @@
   width: 120px;
   cursor: pointer;
 }
-.search-row select option { background-color: #141621; }
+.search-row select option { background-color: var(--select-option-bg); }
 .search-row input { flex: 1; }
 .filter-search { flex: 1; min-width: 280px; }
 .filter-date { width: 160px; }
