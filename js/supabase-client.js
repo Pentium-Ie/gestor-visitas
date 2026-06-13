@@ -1,6 +1,32 @@
 const SUPABASE_URL = 'https://bygwwnaudkxinytgbmrf.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5Z3d3bmF1ZGt4aW55dGdibXJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExMTE2ODAsImV4cCI6MjA5NjY4NzY4MH0.wseeLbw7MT5_z1ne6zlv55rcVzoJEihZfOlzj5ZxiMs';
 
+function getTokenExpiry() {
+  const token = localStorage.getItem('sb-access-token');
+  if (!token) return 0;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return (payload.exp || 0) * 1000;
+  } catch { return 0; }
+}
+
+async function refreshSession() {
+  const refresh = localStorage.getItem('sb-refresh-token');
+  if (!refresh) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=refresh_token`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refresh })
+    });
+    if (!res.ok) { localStorage.removeItem('sb-access-token'); localStorage.removeItem('sb-refresh-token'); return false; }
+    const data = await res.json();
+    localStorage.setItem('sb-access-token', data.access_token);
+    localStorage.setItem('sb-refresh-token', data.refresh_token);
+    return true;
+  } catch { return false; }
+}
+
 function restHeaders() {
   const h = { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' };
   const token = localStorage.getItem('sb-access-token');
@@ -32,12 +58,20 @@ function queryBuilder(table, q = { select: '*', filters: [], limit: null, orderC
     then(resolve, reject) { return b._exec().then(resolve, reject); },
     async _exec() {
       try {
+        if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
         const opts = { headers: restHeaders() };
         if (q.method === 'POST') { opts.method = 'POST'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
         else if (q.method === 'PATCH') { opts.method = 'PATCH'; opts.body = JSON.stringify(q.body); opts.headers['Prefer'] = 'return=representation'; }
         else if (q.method === 'DELETE') { opts.method = 'DELETE'; }
         const url = q.method === 'POST' ? `${buildQuery(table, q)}` : buildQuery(table, q);
         const res = await fetch(url, opts);
+        if (res.status === 401 && await refreshSession()) {
+          opts.headers = restHeaders();
+          const res2 = await fetch(url, opts);
+          if (!res2.ok) { const txt = await res2.text().catch(() => ''); throw new Error(`Supabase ${res2.status}: ${txt}`); }
+          const data = res2.status === 204 ? null : await res2.json();
+          return { data, error: null };
+        }
         if (!res.ok) { const txt = await res.text().catch(() => ''); throw new Error(`Supabase ${res.status}: ${txt}`); }
         const data = res.status === 204 ? null : await res.json();
         return { data, error: null };
@@ -65,6 +99,7 @@ const supabase = {
     },
     async signOut() {
       const token = localStorage.getItem('sb-access-token');
+      const refresh = localStorage.getItem('sb-refresh-token');
       localStorage.removeItem('sb-access-token');
       localStorage.removeItem('sb-refresh-token');
       if (token) {
@@ -73,16 +108,26 @@ const supabase = {
           headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${token}` }
         }).catch(() => {});
       }
+      if (refresh) {
+        await fetch(`${SUPABASE_URL}/auth/v1/logout`, {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: refresh })
+        }).catch(() => {});
+      }
     },
     async getSession() {
       const token = localStorage.getItem('sb-access-token');
       if (!token) return { data: { session: null } };
+      if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
+      const t = localStorage.getItem('sb-access-token');
+      if (!t) return { data: { session: null } };
       const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${token}` }
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${t}` }
       });
       if (!res.ok) { localStorage.removeItem('sb-access-token'); localStorage.removeItem('sb-refresh-token'); return { data: { session: null } }; }
       const user = await res.json();
-      return { data: { session: { user, access_token: token } } };
+      return { data: { session: { user, access_token: t } } };
     }
   },
   from(table) {
@@ -98,5 +143,26 @@ const supabase = {
         return queryBuilder(table, { select: '*', filters: [], limit: null, orderCol: null, orderDir: 'asc', method: 'DELETE' });
       }
     };
+  },
+  rpc(fn, params) {
+    return (async () => {
+      if (getTokenExpiry() - Date.now() < 60000) await refreshSession();
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+          method: 'POST',
+          headers: restHeaders(),
+          body: JSON.stringify(params || {})
+        });
+        if (res.status === 401 && await refreshSession()) {
+          const res2 = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+            method: 'POST', headers: restHeaders(), body: JSON.stringify(params || {})
+          });
+          const data = res2.ok ? await res2.json().catch(() => null) : null;
+          return { data, error: res2.ok ? null : new Error(`Supabase ${res2.status}`) };
+        }
+        const data = res.ok ? await res.json().catch(() => null) : null;
+        return { data, error: res.ok ? null : new Error(`Supabase ${res.status}`) };
+      } catch (e) { return { data: null, error: e }; }
+    })();
   }
 };
