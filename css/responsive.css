@@ -11,15 +11,16 @@
   .layout-login .glass-content { padding: 35px 0; }
   .dashboard-wrapper { height: auto; min-height: auto; gap: 15px; }
   .system-header { height: auto; padding: 15px 0; }
-  .header-inner { width: 90%; flex-direction: column; gap: 15px; text-align: center; }
+  .header-inner { width: 90%; flex-direction: column; gap: 10px; text-align: center; }
   .system-nav { width: 100%; justify-content: center; flex-wrap: wrap; }
   .nav-link { padding: 6px 12px; font-size: 0.82rem; }
   .btn-logout { width: 100%; max-width: 200px; }
+  .btn-theme-toggle { align-self: center; }
   .workspace-container { height: auto; min-height: auto; }
   .workspace-panel { position: relative; height: auto; }
   .workspace-panel .glass-content { padding: 20px; }
   .grid-workspace { flex-direction: column; gap: 30px; height: auto; }
-  .list-section { border-left: none; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-left: 0; padding-top: 25px; }
+  .list-section { border-left: none; border-top: 1px solid var(--border-subtle); padding-left: 0; padding-top: 25px; }
   .inside-list { max-height: 350px; }
   .modal-glass { width: 90%; padding: 20px; }
 

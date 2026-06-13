@@ -1,5 +1,6 @@
 :root {
   --bg-main: #0d0e12;
+  --bg-overlay: rgba(0,0,0,0.5);
   --glass-bg: linear-gradient(135deg, rgba(23, 25, 36, 0.92) 0%, rgba(13, 14, 20, 0.98) 100%);
   --glass-border-base: rgba(255, 255, 255, 0.06);
   --text-primary: #ffffff;
@@ -10,4 +11,55 @@
   --success-color: #5ddb8a;
   --warning-color: #ffc832;
   --focus-ring: 0 0 0 2px rgba(255, 255, 255, 0.25);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-table: rgba(255, 255, 255, 0.03);
+  --th-bg: rgba(13, 14, 18, 0.95);
+  --input-bg: rgba(0, 0, 0, 0.25);
+  --icon-btn-bg: rgba(255,255,255,0.06);
+  --icon-btn-border: rgba(255,255,255,0.15);
+  --icon-btn-hover-bg: rgba(255,255,255,0.12);
+  --icon-btn-hover-border: rgba(255,255,255,0.3);
+  --hover-bg: rgba(255,255,255,0.02);
+  --bisel-start: rgba(255,255,255,0.45);
+  --bisel-mid: rgba(255,255,255,0.1);
+  --bisel-end: rgba(255,255,255,0.2);
+  --bisel-transparent: rgba(255,255,255,0);
+  --glow-strong: rgba(255,255,255,0.09);
+  --glow-subtle: rgba(255,255,255,0.015);
+  --btn-submit-text: #0d0e12;
+  --btn-submit-bg: #ffffff;
+  --select-option-bg: #141621;
+  --glass-shadow: rgba(0, 0, 0, 0.5);
+  --color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg-main: #eef1f5;
+  --bg-overlay: rgba(0,0,0,0.2);
+  --glass-bg: linear-gradient(135deg, rgba(255,255,255,0.92) 0%, rgba(245,247,250,0.98) 100%);
+  --glass-border-base: rgba(0, 0, 0, 0.06);
+  --text-primary: #1a1d23;
+  --text-muted: rgba(0, 0, 0, 0.5);
+  --text-accent: rgba(0, 0, 0, 0.35);
+  --focus-ring: 0 0 0 2px rgba(0, 0, 0, 0.2);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-table: rgba(0, 0, 0, 0.04);
+  --th-bg: rgba(230, 233, 238, 0.95);
+  --input-bg: rgba(255, 255, 255, 0.6);
+  --icon-btn-bg: rgba(0,0,0,0.04);
+  --icon-btn-border: rgba(0,0,0,0.1);
+  --icon-btn-hover-bg: rgba(0,0,0,0.08);
+  --icon-btn-hover-border: rgba(0,0,0,0.2);
+  --hover-bg: rgba(0,0,0,0.02);
+  --bisel-start: rgba(0,0,0,0.2);
+  --bisel-mid: rgba(0,0,0,0.06);
+  --bisel-end: rgba(0,0,0,0.1);
+  --bisel-transparent: rgba(0,0,0,0);
+  --glow-strong: rgba(0,0,0,0.04);
+  --glow-subtle: rgba(0,0,0,0.008);
+  --btn-submit-text: #ffffff;
+  --btn-submit-bg: #1a1d23;
+  --select-option-bg: #ffffff;
+  --glass-shadow: rgba(0, 0, 0, 0.12);
+  --color-scheme: light;
 }
