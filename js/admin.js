@@ -29,7 +29,7 @@
     }
     html += '<div class="historial-table-wrapper"><table class="historial-table"><thead><tr>' +
       '<th scope="col">Fecha/Hora</th><th scope="col">Evento</th><th scope="col">Visitante</th>' +
-      '<th scope="col">Documento</th><th scope="col">Anfitrión</th><th scope="col">Visita ID</th>' +
+      '<th scope="col">Documento</th><th scope="col">Anfitrión</th><th scope="col">Usuario</th>' +
       '</tr></thead><tbody>';
     rows.forEach(r => {
       const d = new Date(r.fecha);
@@ -41,7 +41,7 @@
         <td>${escapeHtml(r.nombre)}</td>
         <td>${escapeHtml(r.tipo_doc)}: ${escapeHtml(r.num_doc)}</td>
         <td>${escapeHtml(r.anfitrion_nombre)}</td>
-        <td style="font-size:0.75rem;font-family:monospace">${escapeHtml(r.visita_id || '—')}</td>
+        <td style="font-size:0.75rem;font-family:monospace;color:var(--text-muted)">${r.creado_por ? r.creado_por.substring(0, 8) + '…' : '—'}</td>
       </tr>`;
     });
     html += '</tbody></table></div>';
