@@ -100,6 +100,7 @@
     if (!validarFormulario(['reg-nombre', 'reg-numdoc', 'reg-motivo', 'reg-anfitrion'])) return;
     const tipoDoc = document.getElementById('reg-tipodoc').value;
     const numDoc = document.getElementById('reg-numdoc').value.trim();
+    if (tipoDoc === 'DNI' && !/^\d{8}$/.test(numDoc)) { mostrarToast('El DNI debe tener exactamente 8 dígitos.', 'error'); return; }
     const nombre = document.getElementById('reg-nombre').value.trim();
     const empresa = document.getElementById('reg-empresa').value.trim() || 'Particular';
     const motivo = document.getElementById('reg-motivo').value.trim();
@@ -159,6 +160,7 @@
     try {
       const entry = visitasActivas.find(p => p.id === visitorToCheckoutId);
       if (!entry) throw new Error('Visita no encontrada');
+      if (entry.estado !== 'ingresado') { mostrarToast('La visita ya no está en planta.', 'error'); cerrarModal(modal); visitorToCheckoutId = null; toggleLoading(false); enableButton(modalConfirm); return; }
       const v = entry.visitantes;
       const userId = await getCurrentUserId();
 

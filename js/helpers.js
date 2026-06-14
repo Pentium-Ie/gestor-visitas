@@ -1,11 +1,12 @@
-var ICONS = {
+const ICONS = {
   eyeOpen: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
   eyeClosed: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
   moon: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>',
   sun: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>',
   check: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
   cross: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
-  info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+  info: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  calendar: '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>'
 };
 
 function escapeHtml(str) {
@@ -13,13 +14,16 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, c => map[c]);
 }
 
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
 function validarFormulario(ids) {
   let valido = true;
   ids.forEach(id => {
     const el = document.getElementById(id);
     const valor = el.value.trim();
     if (!valor) {
-      el.style.borderColor = '#ff5555';
+      el.style.borderColor = getCSSVar('--danger-color') || '#ff5555';
       valido = false;
     } else {
       el.style.borderColor = '';
@@ -50,20 +54,28 @@ function focusTrap(modalEl) {
   const focusables = modalEl.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   const first = focusables[0];
   const last = focusables[focusables.length - 1];
-  modalEl.addEventListener('keydown', function handler(e) {
+  if (modalEl._focusHandler) {
+    modalEl.removeEventListener('keydown', modalEl._focusHandler);
+  }
+  modalEl._focusHandler = function handler(e) {
     if (e.key !== 'Tab') return;
     if (e.shiftKey) {
       if (document.activeElement === first) { e.preventDefault(); last.focus(); }
     } else {
       if (document.activeElement === last) { e.preventDefault(); first.focus(); }
     }
-  });
+  };
+  modalEl.addEventListener('keydown', modalEl._focusHandler);
   if (first) setTimeout(() => first.focus(), 50);
 }
 
 function cerrarModal(overlay) {
   overlay.classList.add('hidden');
   overlay.removeAttribute('aria-active');
+  if (overlay._focusHandler) {
+    overlay.removeEventListener('keydown', overlay._focusHandler);
+    delete overlay._focusHandler;
+  }
 }
 
 function mostrarToast(mensaje, tipo) {
@@ -199,10 +211,30 @@ function logError(nivel, mensaje, detalle) {
   console.error(`[${nivel}] ${mensaje}`, detalle || '');
 }
 
+function getLimaComponents() {
+  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Lima', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).formatToParts(new Date());
+  const get = (type) => parseInt(parts.find(p => p.type === type)?.value || '0', 10);
+  return { year: get('year'), month: get('month'), day: get('day'), hour: get('hour'), minute: get('minute'), second: get('second') };
+}
+
 function getLimaNow() {
-  return new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Lima' }));
+  const c = getLimaComponents();
+  return new Date(c.year, c.month - 1, c.day, c.hour, c.minute, c.second);
 }
 
 function getLimaDateStr() {
-  return getLimaNow().toISOString().slice(0, 10);
+  const c = getLimaComponents();
+  return c.year + '-' + String(c.month).padStart(2, '0') + '-' + String(c.day).padStart(2, '0');
 }
+
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.date-picker-btn');
+  if (!btn) return;
+  const input = document.getElementById(btn.getAttribute('data-target'));
+  if (!input) return;
+  if (typeof input.showPicker === 'function') {
+    input.showPicker();
+  } else {
+    input.focus();
+  }
+});

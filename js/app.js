@@ -84,19 +84,23 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function showSection(targetId) {
+    navLinks.forEach(l => l.classList.remove('active'));
+    const link = document.querySelector('.nav-link[data-target="' + targetId + '"]');
+    if (link) link.classList.add('active');
+    workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
+    const target = document.getElementById(targetId);
+    if (target) target.classList.remove('hidden-section');
+    if (targetId === 'sec-historial') window.AppState.historial.loadHistorial();
+    if (targetId === 'sec-registro') window.AppState.registro.renderVisitors();
+    if (targetId === 'sec-programacion') window.AppState.programacion.renderProgramadas();
+    if (targetId === 'sec-admin') window.AppState.admin.loadAdmin();
+  }
+
   navLinks.forEach(link => {
     link.addEventListener('click', (e) => {
       e.preventDefault();
-      navLinks.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-      workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
-      const targetId = link.getAttribute('data-target');
-      const target = document.getElementById(targetId);
-      if (target) target.classList.remove('hidden-section');
-      if (targetId === 'sec-historial') window.AppState.historial.loadHistorial();
-      if (targetId === 'sec-registro') window.AppState.registro.renderVisitors();
-      if (targetId === 'sec-programacion') window.AppState.programacion.renderProgramadas();
-      if (targetId === 'sec-admin') window.AppState.admin.loadLog();
+      showSection(link.getAttribute('data-target'));
     });
   });
 
@@ -183,6 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      const userId = await getCurrentUserId();
+      const { data: perfil } = await supabase.from('perfiles').select('rol, activo').eq('id', userId).limit(1).single();
+      if (!perfil || !perfil.activo) {
+        await supabase.auth.signOut();
+        loginError.textContent = "Su cuenta no tiene un perfil activo. Contacte al administrador.";
+        toggleLoading(false);
+        enableButton(formLogin.querySelector('.btn-submit'));
+        return;
+      }
       limpiarIntentosLogin(email);
       localStorage.setItem('sessionStartedAt', new Date().toISOString());
       loginError.textContent = "";
@@ -218,6 +231,9 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+
+  window.AppState = window.AppState || {};
+  window.AppState.showSection = showSection;
 
   (async () => {
     if (verificarReLoginDiario()) {

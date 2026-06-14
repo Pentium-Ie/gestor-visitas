@@ -2,6 +2,8 @@
   .dashboard-wrapper { max-width: 95%; }
   .grid-workspace { gap: 20px; }
   .list-section { padding-left: 20px; }
+  .admin-kpis { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
@@ -42,13 +44,16 @@
 }
 
 @media (max-width: 576px) {
+  .admin-kpis { grid-template-columns: 1fr; }
+  .kpi-card { padding: 14px 12px; }
+  .kpi-value { font-size: 1.6rem; }
   .historial-table th:nth-child(4), .historial-table td:nth-child(4) { display: none; }
   .historial-table th:nth-child(7), .historial-table td:nth-child(7) { display: none; }
   .historial-table td, .historial-table th { font-size: 0.72rem; padding: 6px 4px; }
 }
 
-.system-header { opacity: 0; transform: translateY(-50px); will-change: transform, opacity; }
-.workspace-container { opacity: 0; will-change: opacity; }
+.system-header { opacity: 0; transform: translateY(-50px); }
+.workspace-container { opacity: 0; }
 .animate-header { animation: slideTopEffect 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
 .animate-workspace { animation: pureFadeEffect 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }
 .fade-in { animation: pureFadeEffect 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards; }

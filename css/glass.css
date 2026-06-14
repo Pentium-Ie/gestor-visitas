@@ -47,7 +47,6 @@
   );
   z-index: 3;
   mix-blend-mode: overlay;
-  will-change: transform;
 }
 .glass-content {
   box-sizing: border-box;
@@ -111,7 +110,6 @@
   );
   z-index: 3;
   mix-blend-mode: overlay;
-  will-change: transform;
 }
 .modal-glass .glass-content {
   box-sizing: border-box;

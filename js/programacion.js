@@ -96,13 +96,14 @@
   formProgramacion.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!validarFormulario(['prog-nombre', 'prog-numdoc', 'prog-motivo', 'prog-anfitrion'])) return;
+    const tipoDoc = document.getElementById('prog-tipodoc').value;
+    const numDoc = document.getElementById('prog-numdoc').value.trim();
+    if (tipoDoc === 'DNI' && !/^\d{8}$/.test(numDoc)) { mostrarToast('El DNI debe tener exactamente 8 dígitos.', 'error'); return; }
     const fecha = document.getElementById('prog-fecha').value;
     if (!fecha) return;
     const fechaVisita = new Date(fecha);
     if (fechaVisita < new Date()) { mostrarToast('La fecha debe ser futura.', 'error'); return; }
-
-    const tipoDoc = document.getElementById('prog-tipodoc').value;
-    const numDoc = document.getElementById('prog-numdoc').value.trim();
+    if (fechaVisita.getHours() < 7 || fechaVisita.getHours() >= 19) { mostrarToast('La hora debe estar entre 07:00 y 19:00.', 'error'); return; }
     const nombre = document.getElementById('prog-nombre').value.trim();
     const empresa = document.getElementById('prog-empresa').value.trim() || 'Particular';
     const motivo = document.getElementById('prog-motivo').value.trim();
@@ -210,8 +211,7 @@
     editandoId = visita.id;
     cerrarModal(modalDetalle);
     selectedProgramacionId = null;
-    const navProgramacion = document.querySelector('.nav-link[data-target="sec-programacion"]');
-    if (navProgramacion) navProgramacion.click();
+    if (window.AppState.showSection) window.AppState.showSection('sec-programacion');
   });
 
   detailRegister.addEventListener('click', () => {
@@ -227,14 +227,35 @@
     focusTrap(modalConfirmarRegistro);
   });
 
-  detailCancelar.addEventListener('click', async () => {
+  const modalCancelar = document.getElementById('modal-confirmar-cancelacion');
+  const cancelVisitorName = document.getElementById('cancel-visitor-name');
+  const cancelObs = document.getElementById('cancel-obs');
+  const cancelNo = document.getElementById('cancel-no');
+  const cancelYes = document.getElementById('cancel-yes');
+
+  detailCancelar.addEventListener('click', () => {
     if (!selectedProgramacionId) return;
     const visita = visitasProgramadas.find(v => v.id === selectedProgramacionId);
     if (!visita) return;
-    if (!confirm(`¿Cancelar la visita programada de ${visita.visitantes.nombre}?`)) return;
+    cancelVisitorName.textContent = '¿Cancelar la visita programada de ' + visita.visitantes.nombre + '?';
+    cancelObs.value = '';
+    cerrarModal(modalDetalle);
+    modalCancelar.classList.remove('hidden');
+    modalCancelar.setAttribute('aria-active', 'true');
+    focusTrap(modalCancelar);
+  });
+
+  cancelNo.addEventListener('click', () => { cerrarModal(modalCancelar); });
+  modalCancelar.addEventListener('click', (e) => { if (e.target === modalCancelar) cerrarModal(modalCancelar); });
+
+  cancelYes.addEventListener('click', async () => {
+    if (!selectedProgramacionId) return;
+    const visita = visitasProgramadas.find(v => v.id === selectedProgramacionId);
+    if (!visita) return;
+    const obs = cancelObs.value.trim();
 
     toggleLoading(true);
-    disableButton(detailCancelar, 'Cancelando...');
+    disableButton(cancelYes, 'Cancelando...');
     try {
       const v = visita.visitantes;
       const userId = await getCurrentUserId();
@@ -253,7 +274,7 @@
         anfitrion_id: visita.anfitrion_id,
         anfitrion_nombre: visita.anfitriones?.nombre || '—',
         estado: 'cancelada',
-        obs: '',
+        obs,
         fecha: new Date().toISOString(),
         fecha_programada: visita.fecha_programada,
         creado_por: userId,
@@ -261,7 +282,7 @@
       });
       if (histErr) throw histErr;
 
-      cerrarModal(modalDetalle);
+      cerrarModal(modalCancelar);
       selectedProgramacionId = null;
       await renderProgramadas();
       mostrarToast('Visita cancelada correctamente.');
@@ -271,7 +292,7 @@
       mostrarToast('Error al cancelar.', 'error');
     } finally {
       toggleLoading(false);
-      enableButton(detailCancelar);
+      enableButton(cancelYes);
     }
   });
 

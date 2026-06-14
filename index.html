@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://bygwwnaudkxinytgbmrf.supabase.co">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0d0e12" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
@@ -24,16 +25,16 @@
       <div class="glass-glow"></div>
       <div class="glass-content">
         <form class="login-form" id="form-login">
-          <h2>Welcome Back</h2>
-          <p class="subtitle">Enter your studio credentials</p>
+          <h2>Bienvenido</h2>
+          <p class="subtitle">Ingrese sus credenciales</p>
 
           <div class="input-group">
-            <label for="username">Email</label>
+            <label for="username">Correo Electrónico</label>
             <input type="email" id="username" autocomplete="email" placeholder="usuario@correo.com">
           </div>
 
           <div class="input-group">
-            <label for="password">Password</label>
+            <label for="password">Contraseña</label>
             <div class="password-wrapper">
               <input type="password" id="password" placeholder="••••••••">
               <button type="button" id="toggle-password" class="btn-toggle-password icon-btn" aria-label="Mostrar contraseña"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
@@ -41,7 +42,7 @@
           </div>
           <p id="login-error" class="error-text" role="alert"></p>
 
-          <button type="submit" class="btn-submit">Sign In</button>
+          <button type="submit" class="btn-submit">Iniciar Sesión</button>
         </form>
       </div>
     </div>
@@ -51,7 +52,7 @@
       <header class="glass-card system-header" draggable="false">
         <div class="glass-glow"></div>
         <div class="glass-content header-inner">
-          <div class="logo">STUDIO<span>PRISM</span></div>
+          <div class="logo">Gestor<span>Visitas</span></div>
           <nav class="system-nav" aria-label="Navegación principal">
             <a href="#" class="nav-link active" data-target="sec-registro" role="button">Registro</a>
             <a href="#" class="nav-link" data-target="sec-programacion" role="button">Programación</a>
@@ -59,7 +60,7 @@
             <a href="#" class="nav-link" data-target="sec-admin" role="button">Administración</a>
           </nav>
           <button id="btn-theme-toggle" class="icon-btn btn-theme-toggle" type="button" aria-label="Cambiar a modo claro"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></button>
-          <button id="btn-logout" class="btn-logout">Log Out</button>
+          <button id="btn-logout" class="btn-logout" aria-label="Cerrar sesión">Cerrar Sesión</button>
         </div>
       </header>
 
@@ -77,28 +78,28 @@
                   <select id="reg-tipodoc">
                     <option value="DNI">DNI</option>
                     <option value="CE">CE</option>
-                    <option value="Pasaporte">Pasaporte</option>
+                    <option value="PAS">Pasaporte</option>
                   </select>
                 </div>
                 <div class="input-group">
                   <label for="reg-numdoc">N° Documento</label>
-                  <input type="text" id="reg-numdoc" placeholder="12345678" required>
+                  <input type="text" id="reg-numdoc" placeholder="12345678" maxlength="20" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="reg-nombre">Nombre Completo</label>
-                  <input type="text" id="reg-nombre" placeholder="Juan Pérez" required>
+                  <input type="text" id="reg-nombre" placeholder="Juan Pérez" maxlength="150" required>
                 </div>
                 <div class="input-group">
                   <label for="reg-empresa">Empresa de Procedencia</label>
-                  <input type="text" id="reg-empresa" placeholder="Empresa S.A.">
+                  <input type="text" id="reg-empresa" placeholder="Empresa S.A." maxlength="150">
                 </div>
                 <div class="input-group">
                   <label for="reg-motivo">Motivo de Visita</label>
-                  <input type="text" id="reg-motivo" placeholder="Reunión de trabajo" required>
+                  <input type="text" id="reg-motivo" placeholder="Reunión de trabajo" maxlength="500" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="reg-anfitrion">¿A quién visita?</label>
-                  <input type="text" id="reg-anfitrion" placeholder="Área / Nombre del personal" required>
+                  <input type="text" id="reg-anfitrion" placeholder="Área / Nombre del personal" maxlength="150" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="reg-obs">Observaciones</label>
@@ -136,11 +137,17 @@
                 </div>
                 <div class="input-group filter-date">
                   <label for="historial-fecha-inicio">Fecha Inicio</label>
-                  <input type="date" id="historial-fecha-inicio">
+                  <div class="date-input-wrapper">
+                    <input type="date" id="historial-fecha-inicio" class="with-date-btn">
+                    <button type="button" class="icon-btn date-picker-btn" aria-label="Seleccionar fecha inicio" data-target="historial-fecha-inicio"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+                  </div>
                 </div>
                 <div class="input-group filter-date">
                   <label for="historial-fecha-fin">Fecha Fin</label>
-                  <input type="date" id="historial-fecha-fin">
+                  <div class="date-input-wrapper">
+                    <input type="date" id="historial-fecha-fin" class="with-date-btn">
+                    <button type="button" class="icon-btn date-picker-btn" aria-label="Seleccionar fecha fin" data-target="historial-fecha-fin"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -166,9 +173,20 @@
 
         <main id="sec-admin" class="glass-card workspace-panel hidden-section" draggable="false">
           <div class="glass-glow"></div>
-          <div class="glass-content view-placeholder">
-            <h3>Panel de Administración</h3>
-            <p>Configuración de credenciales y permisos del sistema.</p>
+          <div class="glass-content admin-content">
+            <div class="admin-kpis" id="admin-kpis"></div>
+            <div class="charts-row" id="admin-charts">
+              <div class="chart-container">
+                <h4>Distribución por Anfitrión</h4>
+                <canvas id="chart-distribucion"></canvas>
+              </div>
+              <div class="chart-container">
+                <h4>Evolución Mensual</h4>
+                <canvas id="chart-evolucion"></canvas>
+              </div>
+            </div>
+            <div id="admin-log-section"></div>
+            <div id="admin-error-section"></div>
           </div>
         </main>
 
@@ -189,27 +207,30 @@
                 </div>
                 <div class="input-group">
                   <label for="prog-numdoc">Nro. Documento</label>
-                  <input type="text" id="prog-numdoc" placeholder="12345678" required>
+                  <input type="text" id="prog-numdoc" placeholder="12345678" maxlength="20" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="prog-nombre">Nombre Completo</label>
-                  <input type="text" id="prog-nombre" placeholder="Juan Pérez" required>
+                  <input type="text" id="prog-nombre" placeholder="Juan Pérez" maxlength="150" required>
                 </div>
                 <div class="input-group">
                   <label for="prog-empresa">Empresa de Procedencia</label>
-                  <input type="text" id="prog-empresa" placeholder="Empresa S.A.">
+                  <input type="text" id="prog-empresa" placeholder="Empresa S.A." maxlength="150">
                 </div>
                 <div class="input-group">
                   <label for="prog-motivo">Motivo de Visita</label>
-                  <input type="text" id="prog-motivo" placeholder="Reunión de trabajo" required>
+                  <input type="text" id="prog-motivo" placeholder="Reunión de trabajo" maxlength="500" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="prog-anfitrion">¿A quién visita?</label>
-                  <input type="text" id="prog-anfitrion" placeholder="Área / Nombre del personal" required>
+                  <input type="text" id="prog-anfitrion" placeholder="Área / Nombre del personal" maxlength="150" required>
                 </div>
                 <div class="input-group full-width">
                   <label for="prog-fecha">Fecha y Hora</label>
-                  <input type="datetime-local" id="prog-fecha" required>
+                  <div class="date-input-wrapper">
+                    <input type="datetime-local" id="prog-fecha" class="with-date-btn" required>
+                    <button type="button" class="icon-btn date-picker-btn" aria-label="Seleccionar fecha y hora" data-target="prog-fecha"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
+                  </div>
                 </div>
                 <button type="submit" class="btn-submit">Agendar Visita</button>
               </form>
@@ -237,8 +258,8 @@
             <textarea id="exit-obs" rows="3" placeholder="Ninguna novedad..."></textarea>
           </div>
           <div class="modal-actions">
-            <button id="modal-cancel" class="btn-secondary">Cancelar</button>
-            <button id="modal-confirm" class="btn-danger">Registrar Salida</button>
+            <button type="button" id="modal-cancel" class="btn-secondary">Cancelar</button>
+            <button type="button" id="modal-confirm" class="btn-danger">Registrar Salida</button>
           </div>
         </div>
       </div>
@@ -251,7 +272,7 @@
           <h3 id="modal-visitor-detail-title">Detalle de Visita</h3>
           <div class="detail-grid" id="modal-visitor-detail-content"></div>
           <div class="modal-actions">
-            <button id="modal-visitor-detail-close" class="btn-secondary">Cerrar</button>
+            <button type="button" id="modal-visitor-detail-close" class="btn-secondary">Cerrar</button>
           </div>
         </div>
       </div>
@@ -264,10 +285,10 @@
           <h3 id="modal-detalle-title">Detalle de Programación</h3>
           <div class="detail-grid" id="detail-content"></div>
           <div class="modal-actions">
-            <button id="detail-cancel" class="btn-secondary">Cerrar</button>
-            <button id="detail-edit" class="btn-secondary">Editar</button>
-            <button id="detail-register" class="btn-submit">Registrar Ingreso</button>
-            <button id="detail-cancelar" class="btn-danger">Cancelar Visita</button>
+            <button type="button" id="detail-cancel" class="btn-secondary">Cerrar</button>
+            <button type="button" id="detail-edit" class="btn-secondary">Editar</button>
+            <button type="button" id="detail-register" class="btn-submit">Registrar Ingreso</button>
+            <button type="button" id="detail-cancelar" class="btn-danger">Cancelar Visita</button>
           </div>
         </div>
       </div>
@@ -284,8 +305,8 @@
             <textarea id="confirm-obs" rows="3" placeholder="Observaciones adicionales..."></textarea>
           </div>
           <div class="modal-actions">
-            <button id="confirm-cancel" class="btn-secondary">Cancelar</button>
-            <button id="confirm-ok" class="btn-submit">Confirmar Registro</button>
+            <button type="button" id="confirm-cancel" class="btn-secondary">Cancelar</button>
+            <button type="button" id="confirm-ok" class="btn-submit">Confirmar Registro</button>
           </div>
         </div>
       </div>
@@ -298,7 +319,25 @@
           <h3 id="modal-historial-title">Detalle de Registro</h3>
           <div class="detail-grid" id="historial-detail-content"></div>
           <div class="modal-actions">
-            <button id="historial-detail-close" class="btn-secondary">Cerrar</button>
+            <button type="button" id="historial-detail-close" class="btn-secondary">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-confirmar-cancelacion" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-cancel-title">
+      <div class="glass-card modal-glass modal-sm">
+        <div class="glass-glow"></div>
+        <div class="glass-content">
+          <h3 id="modal-cancel-title">Confirmar Cancelación</h3>
+          <p id="cancel-visitor-name"></p>
+          <div class="input-group">
+            <label for="cancel-obs">Motivo de Cancelación</label>
+            <textarea id="cancel-obs" rows="3" placeholder="Opcional..."></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="button" id="cancel-no" class="btn-secondary">Volver</button>
+            <button type="button" id="cancel-yes" class="btn-danger">Cancelar Visita</button>
           </div>
         </div>
       </div>

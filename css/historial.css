@@ -2,7 +2,7 @@
 .historial-filters { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
 .search-row { display: flex; gap: 6px; }
 .search-row select {
-  background: rgba(0, 0, 0, 0.25);
+  background: var(--input-bg);
   border: 1px solid var(--glass-border-base);
   border-radius: 8px;
   color: var(--text-primary);

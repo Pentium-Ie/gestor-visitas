@@ -139,27 +139,6 @@ function base64UrlDecode(str) {
 
 **Solución:** Todos los catch blocks ahora llaman a `logError()` con contexto del error, además del `console.error()` existente. Esto permite visibilidad desde el panel de administración sin depender de la consola del navegador.
 
----
-
-### Archivos modificados
-
-| Archivo | Cambios |
-|---------|---------|
-| `js/supabase-client.js` | base64UrlDecode, getSession con refresh, _exec() y rpc() con retry 401 + logError |
-| `js/helpers.js` | disableButton(), enableButton(), logError(), getLimaNow(), getLimaDateStr() |
-| `js/app.js` | Lockout intentos login, re-login 8AM Lima, initSessionCheck con daily verify |
-| `js/registro.js` | disableButton/enableButton en submit y checkout + logError en catch blocks |
-| `js/programacion.js` | disableButton/enableButton en submit, cancel, confirm + logError en catch blocks |
-| `js/admin.js` | Render logs de error desde localStorage + botón limpiar |
-| `index.html` | Meta tags safe area, theme-color, apple-mobile-web-app |
-| `css/variables.css` | --safe-* variables |
-| `css/base.css` | body padding con safe-area |
-| `css/components.css` | select → .grid-form select (scope reducido) |
-| `css/historial.css` | option usa variable CSS, select mantiene comportamiento nativo |
-| `css/responsive.css` | Body padding safe-area en móvil |
-
----
-
 ### 11. 🟡 Backoff exponencial con reintentos (resuelto)
 
 **Archivo:** `js/supabase-client.js`
@@ -205,6 +184,127 @@ function base64UrlDecode(str) {
 | Backoff | ✅ 3 reintentos, ambos verbos, toast visible, delays 1s/2s/4s |
 | MFA | ❌ No necesario (sin datos sensibles). Lockout 4 intentos + re-login diario es suficiente. |
 
-### Preguntas cerradas
+---
 
-Las 3 preguntas abiertas han sido respondidas. No quedan puntos pendientes.
+## 2026-06-13 — Sesión 2 (KPIs, Charts, SQL Migration)
+
+### Objetivo
+Implementar KPIs en panel Administración, ejecutar SQL migration completa, añadir Chart.js.
+
+### 12. 🟢 KPIs en panel Administración
+
+**Archivos:** `js/admin.js`, `index.html`, `css/components.css`, `css/responsive.css`
+
+| KPI | Descripción |
+|-----|-------------|
+| **Visitas Hoy** | Total visitas del día + "X en planta" |
+| **Tiempo Promedio** | Minutos promedio entre ingreso y salida |
+| **Top Anfitrión** | Anfitrión con más visitas (LIMIT 1) |
+| **Conversión Programados** | % de programados que ingresaron |
+| **Donut Chart** | Distribución porcentual por anfitrión |
+| **Line Chart** | Evolución mensual (12 meses) |
+
+**Detalles técnicos:**
+- Chart.js v4 desde CDN (`cdn.jsdelivr.net/npm/chart.js`)
+- Colores adaptados al tema via `getComputedStyle`
+- KPIs calculados client-side desde `visitas`
+- 6 RPC functions como respaldo en BD
+- Gráficos se destruyen/re-crean al navegar
+
+### 13. 🟢 SQL Migration ejecutada
+
+**Ejecutado vía Management API el 13/06/2026:**
+
+| Paso | Acción |
+|------|--------|
+| 1 | 5 CHECK constraints |
+| 2 | FK types INTEGER → BIGINT |
+| 3 | `historial.motivo` VARCHAR(250) → TEXT |
+| 4 | Drop tablas legacy |
+| 5 | 4 índices |
+| 6 | RLS historial: solo admin SELECT |
+| 7 | 6 KPI functions |
+
+### Archivos modificados (sesión 2)
+
+| Archivo | Cambios |
+|---------|---------|
+| `index.html` | Chart.js CDN, admin section con KPIs/charts/logs placeholders |
+| `js/admin.js` | Rewrite completo: loadAdmin(), loadKPIs(), loadCharts() (donut + evolution), loadLog(), renderErrorLogs() |
+| `js/supabase-client.js` | Métodos faltantes `not()`, `in()`, `neq()`, `lt()`, `gt()`, fix `is()` |
+| `css/components.css` | .admin-content, .admin-kpis, .kpi-card, .kpi-value, .charts-row, .chart-container |
+| `css/responsive.css` | KPI grid responsive (2 cols ≤1024px, 1 col ≤576px) |
+| `js/app.js` | loadLog() → loadAdmin() en nav |
+| `SUPABASE-MIGRATION.md` | Nota de ejecución completada |
+
+---
+
+## 2026-06-14 — Sesión 3 (Auditoría y Correcciones)
+
+### Objetivo
+Auditar full codebase (32 hallazgos) y corregir 24 hallazgos de seguridad, UX y consistencia.
+
+### Hallazgos Corregidos (24/32)
+
+| ID | Severidad | Hallazgo | Fix |
+|----|-----------|----------|-----|
+| C1 | 🔴 Crítico | `focusTrap()` memory leak | Listener almacenado en `modalEl._focusHandler` y removido en `cerrarModal()` |
+| C2 | 🔴 Crítico | `Pasaporte` vs `PAS` inconsistente | Unificado a `PAS` en ambos formularios |
+| A1 | 🟡 Alto | Sin Content-Security-Policy | Meta tag CSP con `script-src 'self' cdn.jsdelivr.net unpkg.com` |
+| A3 | 🟡 Alto | Sin verificación perfil activo post-login | Consulta `SELECT rol FROM perfiles WHERE id = ... AND activo`; rechaza si inactivo |
+| A5 | 🟡 Alto | Chart.js CDN sin fallback | `ensureChartJS()`: intenta jsdelivr → unpkg → degradación suave |
+| A6 | 🟡 Alto | Máquina estados sin validación checkout | Verifica `entry.estado === 'ingresado'` antes de procesar salida |
+| M1 | 🔵 Medio | Color `#ff5559` hardcodeado | `getCSSVar('--danger-color')` resuelve CSS variable a valor inline |
+| M2 | 🔵 Medio | Duplicate `@media (max-width: 576px)` | Unificado en un solo bloque |
+| M3 | 🔵 Medio | Sin maxlength en inputs | Agregado a todos los campos (20-500 chars) |
+| M4 | 🔵 Medio | `estadoClean` regex frágil | `normalize('NFD')` + strip diacríticos + solo `[a-z]` |
+| M5 | 🔵 Medio | Nav coupling: simula click en nav | `showSection()` via `window.AppState` en vez de `nav.click()` |
+| M6 | 🔵 Medio | Sin `aria-label` en logout | Agregado `aria-label="Cerrar sesión"` |
+| M7 | 🔵 Medio | `confirm()` nativo en cancelación | Modal glass reemplaza `confirm()` |
+| M8 | 🔵 Medio | Sin validación horario laboral | Validación 07:00-19:00 en programación |
+| M9 | 🔵 Medio | Modal buttons sin `type="button"` | Agregado `type="button"` a todos los botones de modal |
+| M10 | 🔵 Medio | Sección duplicada MEJORAS.md | Tabla redundante de "Archivos modificados" eliminada |
+| M11 | 🔵 Medio | `var ICONS` inconsistente | Cambiado a `const ICONS` |
+| M12 | 🔵 Medio | DNI sin validación de formato | Validación `/^\d{8}$/` para tipo DNI |
+| B1 | 🟢 Bajo | Logo "STUDIO PRISM" no coincide | Cambiado a "Gestor Visitas" |
+| B2 | 🟢 Bajo | Login en inglés | Traducido a español: "Email" → "Correo", "Password" → "Contraseña", "Sign In" → "Iniciar Sesión" |
+| B4 | 🟢 Bajo | `will-change: transform` en glass | Eliminado de `.glass-glow`, `.modal-glass .glass-glow`, `.system-header`, `.workspace-container` |
+| B5 | 🟢 Bajo | `btn-submit:hover` sin cambio visual | Agregado `filter: brightness(1.15)` |
+| B7 | 🟢 Bajo | KPIs con UTC off-by-one | Migrado a `Intl.DateTimeFormat` + `Date.setDate()` para fin de mes |
+| B10 | 🟢 Bajo | Search select fondo fijo oscuro | Cambiado a `var(--input-bg)` |
+
+### Pendientes (8/32)
+
+Requieren infraestructura server-side o decisiones adicionales:
+
+| ID | Severidad | Hallazgo | Requiere |
+|----|-----------|----------|----------|
+| C3 | 🔴 Crítico | Login lockout client-side | Edge Function + tabla `intentos_login` |
+| A2 | 🟡 Alto | TOKENS.md con tokens vivos | Gestor de secretos externo (Windows Credential Manager, 1Password CLI) |
+| A4 | 🟡 Alto | LIMIT 1000 sin paginación | Paginación offset-based en historial |
+| B3 | 🟢 Bajo | Sin LICENSE | Decidido: no agregar |
+| B6 | 🟢 Bajo | Script tag sin `crossorigin`/`integrity` | Baja prioridad (CDN confiable) |
+| B8 | 🟢 Bajo | Sin CHANGELOG.md | MEJORAS.md cumple ese rol |
+| B9 | 🟢 Bajo | `loginError.textContent` seguro | Correcto por seguridad (no XSS) |
+| B11 | 🟢 Bajo | AGENTS.md "25+ índices" inexacto | Actualizado en AGENTS.md |
+
+### Archivos modificados (sesión 3)
+
+| Archivo | Cambios |
+|---------|---------|
+| `index.html` | CSP meta tag, login español, logo "Gestor Visitas", modal cancel-glass, PAS en reg-tipodoc, maxlength inputs, type=button modales, aria-label logout |
+| `js/helpers.js` | focusTrap cleanup, `getCSSVar()`, `const ICONS`, showSection via AppState |
+| `js/app.js` | Perfil activo post-login, login español, showSection via AppState |
+| `js/admin.js` | Chart.js dynamic loading con fallback, KPIs con Intl.DateTimeFormat + Date.setDate(), estadoClean con normalize |
+| `js/registro.js` | DNI 8 dígitos validación, máquina estados checkout |
+| `js/programacion.js` | Horario 07-19 validación, DNI 8 dígitos, modal cancel-glass, showSection via AppState |
+| `css/variables.css` | Sin cambios |
+| `css/base.css` | Sin cambios |
+| `css/glass.css` | will-change eliminado |
+| `css/components.css` | btn-submit:hover brightness, KPI rules movidos (unified media query) |
+| `css/historial.css` | search select usa `var(--input-bg)` |
+| `css/responsive.css` | Media queries unificadas |
+| `AGENTS.md` | Limpiado: solo estado actual (sin historial ni pendientes) |
+| `SUPABASE-MIGRATION.md` | Limpiado: solo esquema actual (sin SQL ejecutado ni migración histórica) |
+| `AUDIT.md` | Simplificado: snapshot de hallazgos con estado actual |
+| `MEJORAS.md` | Esta sesión |

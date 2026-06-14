@@ -1,4 +1,4 @@
-# Migración a Supabase — Gestor de Visitas
+# Supabase — Esquema y Configuración
 
 ## Visión General
 
@@ -63,24 +63,32 @@ visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
 | creado_en | TIMESTAMPTZ | |
 | actualizado_en | TIMESTAMPTZ | Trigger `trg_visitantes_actualizado` |
 
-Trigger: `fn_actualizar_visitante()` actualiza `actualizado_en` en UPDATE.
-
 #### `visitas` (fuente de verdad)
 | Columna | Tipo | Notas |
 |---|---|---|
 | id | UUID PK | Generado con `crypto.randomUUID()` en JS |
-| visitante_id | INTEGER FK → visitantes(id) | |
-| anfitrion_id | INTEGER FK → anfitriones(id) | |
+| visitante_id | BIGINT | FK → visitantes(id) |
+| anfitrion_id | BIGINT | FK → anfitriones(id) |
 | motivo | TEXT | |
 | obs_ingreso | TEXT | |
-| obs_salida | TEXT | |
+| obs_salida | TEXT | CHECK (obs_salida IS NULL OR length(obs_salida) >= 4) |
 | fecha_programada | TIMESTAMPTZ | NULL para ingreso directo |
 | fecha_ingreso | TIMESTAMPTZ | NULL si solo programado |
 | fecha_salida | TIMESTAMPTZ | |
-| estado | TEXT | 'programado','ingresado','retirado','cancelado' |
+| estado | TEXT | CHECK IN ('programado','ingresado','retirado','cancelado') |
 | creado_por | UUID | FK → perfiles(id) |
 | created_at | TIMESTAMPTZ | |
 | updated_at | TIMESTAMPTZ | Trigger `fn_visitas_updated_at()` |
+
+**CHECK de máquina de estados:**
+```sql
+CHECK (
+  (estado = 'ingresado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NULL) OR
+  (estado = 'retirado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NOT NULL) OR
+  (estado = 'programado' AND fecha_programada IS NOT NULL AND fecha_ingreso IS NULL AND fecha_salida IS NULL) OR
+  (estado = 'cancelado')
+)
+```
 
 #### `historial` (log inmutable)
 | Columna | Tipo | Notas |
@@ -88,26 +96,25 @@ Trigger: `fn_actualizar_visitante()` actualiza `actualizado_en` en UPDATE.
 | id | BIGINT PK | |
 | visita_id | UUID | FK → visitas(id). NULL para registros legacy |
 | visitante_id | BIGINT | |
-| tipo_doc | VARCHAR(5) | |
+| tipo_doc | VARCHAR(5) | CHECK IN ('DNI','CE','PAS') |
 | num_doc | VARCHAR(20) | |
 | nombre | VARCHAR(150) | |
 | empresa | VARCHAR(150) | |
-| motivo | VARCHAR(250) | |
+| motivo | TEXT | |
 | anfitrion_id | BIGINT | |
 | anfitrion_nombre | VARCHAR(150) | |
-| estado | VARCHAR(20) | 'ingreso','salida','cancelada','ingreso_programado','salida_automatica','reprogramado','agendado' |
+| estado | VARCHAR(20) | CHECK IN ('ingreso','salida','cancelada','ingreso_programado','salida_automatica','reprogramado','agendado') |
 | obs | TEXT | |
 | fecha | TIMESTAMPTZ | |
 | fecha_programada | TIMESTAMPTZ | Solo para programaciones |
 | creado_por | UUID | FK → perfiles(id) |
 | creado_en | TIMESTAMPTZ | |
 | grupo_id | UUID | Para agrupar eventos de una misma visita |
-| programada_id | BIGINT | Legacy, NULL |
 
-### Tablas Legacy (no usadas por el frontend)
+### Tablas Legacy (eliminadas)
 
-`en_planta` y `programadas` existen en la BD pero no son utilizadas
-por el código actual. Toda la lógica opera sobre `visitas`.
+`en_planta` y `programadas` fueron eliminadas del esquema.
+La columna `historial.programada_id` también fue eliminada.
 
 ---
 
@@ -116,11 +123,25 @@ por el código actual. Toda la lógica opera sobre `visitas`.
 | Función | Args | Propósito |
 |---|---|---|
 | `fn_get_users_info(user_ids UUID[])` | `TABLE(id UUID, email TEXT)` | Batch lookup de emails desde `auth.users` para el admin log |
-| `fn_auto_checkout_cierre()` | `TABLE(...)` | Auto-checkout 23:00 Lima (pendiente de implementar) |
 | `fn_visitas_updated_at()` | trigger | Actualiza `visitas.updated_at` |
 | `fn_actualizar_visitante()` | trigger | Actualiza `visitantes.actualizado_en` |
-| `fn_backfill_grupo_id()` | util | Backfill de grupo_id en historial |
-| `fn_cleanup()` | util | Limpieza de datos |
+| `fn_kpi_visitas_hoy()` | `TABLE(total_hoy INT, en_planta INT)` | Total visitas del día (Lima) |
+| `fn_kpi_tiempo_promedio()` | `TABLE(promedio_minutos NUMERIC)` | Tiempo promedio en planta |
+| `fn_kpi_top_anfitrion()` | `TABLE(anfitrion_nombre VARCHAR(150), total_visitas INT)` | Anfitrión con más visitas |
+| `fn_kpi_conversion_programados()` | `TABLE(total_programados INT, ingresaron INT, tasa_porcentaje NUMERIC)` | Tasa de conversión de programados |
+| `fn_kpi_evolucion_mensual()` | `TABLE(mes TEXT, total INT)` | Visitas por mes (últimos 12 meses) |
+| `fn_kpi_distribucion_anfitriones()` | `TABLE(anfitrion_nombre VARCHAR(150), total INT)` | Distribución de visitas por anfitrión |
+
+---
+
+## Índices
+
+```sql
+CREATE INDEX idx_historial_fecha ON historial (fecha DESC);
+CREATE INDEX idx_visitas_estado ON visitas (estado);
+CREATE INDEX idx_historial_grupo_id ON historial (grupo_id);
+CREATE INDEX idx_visitas_fecha_ingreso ON visitas (fecha_ingreso DESC);
+```
 
 ---
 
@@ -128,13 +149,13 @@ por el código actual. Toda la lógica opera sobre `visitas`.
 
 ```
 perfiles    → SELECT: auth.uid() = id
-anfitriones → SELECT/INSERT: EXISTS(perfiles activo)
-visitantes  → SELECT/INSERT/UPDATE: EXISTS(perfiles activo)
+anfitriones → SELECT: EXISTS(perfiles WHERE id = auth.uid() AND activo)
+visitantes  → SELECT/INSERT/UPDATE: EXISTS(perfiles WHERE id = auth.uid() AND activo)
 visitas     → SELECT: true (público), INSERT/UPDATE/DELETE: auth.uid() = creado_por
-historial   → SELECT/INSERT: EXISTS(perfiles activo)
+historial   → SELECT/INSERT: EXISTS(perfiles WHERE id = auth.uid() AND activo AND rol = 'admin')
 ```
 
-`en_planta` y `programadas` tienen sus propias políticas (legacy, no utilizadas).
+Nota: `historial` requiere rol `admin` para SELECT/INSERT, y `visitas` requiere que el operador tenga un perfil activo.
 
 ---
 
@@ -150,7 +171,7 @@ historial   → SELECT/INSERT: EXISTS(perfiles activo)
 ### Registro de Salida
 1. UPDATE `visitas` set `estado='retirado'`, `fecha_salida=now()`, `obs_salida=...`
 2. INSERT en `historial` con `estado='salida'`
-3. `obs_salida` validado ≥ 4 caracteres en frontend (sin CHECK en BD)
+3. `obs_salida` validado ≥ 4 caracteres en frontend y BD (CHECK)
 
 ### Programar Visita
 1. INSERT en `visitas` con `estado='programado'`, `fecha_programada=...`
@@ -168,29 +189,22 @@ historial   → SELECT/INSERT: EXISTS(perfiles activo)
 1. UPDATE `visitas` set `estado='cancelado'`
 2. INSERT en `historial` con `estado='cancelada'`
 
-### Historial
-- SELECT en `visitas` con JOIN a `visitantes` y `anfitriones`
-- Filtro ILIKE por columna (nombre, empresa, motivo, anfitrion)
-- Filtro por rango de fechas (fecha_ingreso / fecha_salida / fecha_programada)
-- Orden descendente por fecha más relevante
-
-### Admin Log
-- SELECT en `historial` ordenado por fecha DESC
-- `fn_get_users_info(batch_user_ids)` para resolver emails desde `auth.users`
-- Columnas: Fecha/Hora, Evento, Visitante, Documento, Anfitrión, Usuario
+### Admin KPIs
+Las KPIs se calculan vía RPC o client-side desde `visitas`:
+1. **Visitas hoy** — Total ingresos + cuántos siguen en planta
+2. **Tiempo promedio** — Minutos promedio entre ingreso y salida
+3. **Top anfitrión** — Anfitrión que más visitas ha recibido
+4. **Conversión programados** — % de programados que efectivamente ingresaron
+5. **Evolución mensual** — Línea de visitas por mes (12 meses)
+6. **Distribución por anfitrión** — Donut chart con %
 
 ---
 
 ## Notas Técnicas
 
-- Sin paginación en historial (para +1000 registros en producción)
-- 21 índices en `public` (PKs, FK btree, GIN trgm, unique parcial)
-- TG_REG exF (`pg_trgm`) para búsqueda por substring
-- `TIMESTAMPTZ` con conversión a `America/Lima` en frontend (`toLocaleDateString('es-PE')`)
+- Sin paginación en historial (LIMIT 1000 fijo; para +1000 registros implementar offset-based)
+- `TIMESTAMPTZ` con conversión a `America/Lima` en frontend
 - Zona horaria: Perú (UTC-5, sin DST)
-
-## Pendientes
-
-- Notificación de visitas >3h en planta
-- Edge Function para auto-checkout 23:00 Lima
-- Paginación en historial para producción
+- Las FK usan BIGINT uniformemente
+- `historial` requiere rol `admin` para SELECT (RLS)
+- Máquina de estados enforce vía CHECK: `programado→ingresado→retirado` o `→cancelado`

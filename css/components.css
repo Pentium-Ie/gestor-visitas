@@ -69,7 +69,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.btn-submit:hover { background: var(--btn-submit-bg); box-shadow: 0 0 15px rgba(255, 255, 255, 0.15); }
+.btn-submit:hover { filter: brightness(1.15); box-shadow: 0 0 15px rgba(255, 255, 255, 0.15); }
 
 .modal-actions .btn-secondary { background: rgba(255, 255, 255, 0.04); color: var(--text-primary); border: 1px solid rgba(255, 255, 255, 0.08); }
 .modal-actions .btn-danger { background: var(--danger-color); color: var(--text-primary); }
@@ -116,22 +116,7 @@
 .btn-historial-detail:hover { background: rgba(255, 255, 255, 0.1); }
 
 input[type="date"], input[type="datetime-local"] { color-scheme: var(--color-scheme, dark); appearance: none; -webkit-appearance: none; }
-input[type="date"]::-webkit-calendar-picker-indicator,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  background-color: var(--icon-btn-bg);
-  border: 1px solid var(--icon-btn-border);
-  border-radius: 5px;
-  cursor: pointer;
-  opacity: 0.8;
-  padding: 5px;
-  transition: all 0.2s ease;
-}
-input[type="date"]::-webkit-calendar-picker-indicator:hover,
-input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-  background-color: var(--icon-btn-hover-bg);
-  border-color: var(--icon-btn-hover-border);
-  opacity: 1;
-}
+
 input[type="date"]::-webkit-datetime-edit-text,
 input[type="datetime-local"]::-webkit-datetime-edit-text { color: var(--text-muted); }
 input[type="date"]::-webkit-datetime-edit-month-field,
@@ -160,14 +145,32 @@ input[type="datetime-local"]::-webkit-datetime-edit-minute-field { color: var(--
 @keyframes toastIn { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(120%); opacity: 0; } }
 
+.admin-content { overflow-y: auto; padding-bottom: 40px; }
+.admin-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+.kpi-card { background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 18px 16px; text-align: center; }
+.kpi-value { font-size: 2rem; font-weight: 700; color: var(--text-primary); line-height: 1.2; }
+.kpi-value-sm { font-size: 1.1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-unit { font-size: 0.85rem; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.kpi-label { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+.kpi-sub { font-size: 0.78rem; color: var(--text-accent); margin-top: 2px; }
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 16px; }
+.chart-container { background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; }
+.chart-container h4 { margin: 0 0 12px 0; font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+.chart-container canvas { max-height: 240px; max-width: 100%; }
+
 .password-wrapper { position: relative; display: flex; align-items: center; }
 .password-wrapper input { padding-right: 38px; }
 .password-wrapper input::-ms-reveal,
 .password-wrapper input::-ms-clear,
 .password-wrapper input::-webkit-credentials-auto-fill-button,
 .password-wrapper input::-webkit-textfield-decoration-container { display: none !important; }
-.btn-toggle-password { position: absolute; right: 5px; }
+.btn-toggle-password { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); }
 .btn-theme-toggle { flex-shrink: 0; }
+
+.date-input-wrapper { position: relative; display: flex; align-items: center; }
+.date-input-wrapper input.with-date-btn { width: 100%; padding-right: 36px; }
+.date-input-wrapper input.with-date-btn::-webkit-calendar-picker-indicator { display: none; }
+.date-picker-btn { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); flex-shrink: 0; z-index: 1; }
 
 .loader-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; }
 .loader-spinner { width: 40px; height: 40px; border: 4px solid rgba(255, 255, 255, 0.15); border-top-color: var(--text-primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
