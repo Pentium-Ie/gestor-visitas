@@ -67,14 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if (window.DeviceOrientationEvent) {
+    let orientTicking = false;
     window.addEventListener('deviceorientation', (e) => {
-      let x = e.gamma; let y = e.beta;
-      if (x === null || y === null) return;
-      if (y > 40) y = (y - 70) * 1.8;
-      const angle = Math.atan2(y, x) * (180 / Math.PI);
-      const travelRatioClamped = Math.max(5, Math.min(50 + (x * 0.8) + (y * 0.5), 95));
-      const visibleCards = document.querySelectorAll('.glass-card:not(.hidden-section)');
-      visibleCards.forEach(card => aplicarReflejoCristal(card, angle, travelRatioClamped));
+      if (orientTicking) return;
+      orientTicking = true;
+      window.requestAnimationFrame(() => {
+        let x = e.gamma; let y = e.beta;
+        if (x === null || y === null) { orientTicking = false; return; }
+        if (y > 40) y = (y - 70) * 1.8;
+        const angle = Math.atan2(y, x) * (180 / Math.PI);
+        const travelRatioClamped = Math.max(5, Math.min(50 + (x * 0.8) + (y * 0.5), 95));
+        const visibleCards = document.querySelectorAll('.glass-card:not(.hidden-section)');
+        visibleCards.forEach(card => aplicarReflejoCristal(card, angle, travelRatioClamped));
+        orientTicking = false;
+      });
     });
   }
 

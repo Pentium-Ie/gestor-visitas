@@ -43,11 +43,11 @@
   }
 
   function renderList() {
-    scheduledVisitorsList.innerHTML = "";
     if (visitasProgramadas.length === 0) {
       scheduledVisitorsList.innerHTML = '<p class="empty-state">No hay visitas programadas.</p>';
       return;
     }
+    const fragment = document.createDocumentFragment();
     visitasProgramadas.forEach(visita => {
       const v = visita.visitantes;
       const anfitrionNombre = visita.anfitriones?.nombre || '—';
@@ -63,8 +63,10 @@
         </div>
         <div class="scheduled-meta">${fechaStr} ${horaStr}</div>
         <button class="btn-detail" data-id="${visita.id}" type="button">Detalle</button>`;
-      scheduledVisitorsList.appendChild(card);
+      fragment.appendChild(card);
     });
+    scheduledVisitorsList.innerHTML = "";
+    scheduledVisitorsList.appendChild(fragment);
   }
 
   scheduledVisitorsList.addEventListener('click', (e) => {

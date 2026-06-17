@@ -38,11 +38,11 @@
   }
 
   function renderList() {
-    activeVisitorsList.innerHTML = "";
     if (visitasActivas.length === 0) {
       activeVisitorsList.innerHTML = '<p class="empty-state">No hay visitas en planta.</p>';
       return;
     }
+    const fragment = document.createDocumentFragment();
     visitasActivas.forEach(entry => {
       const v = entry.visitantes;
       const anfitrionNombre = entry.anfitriones?.nombre || '—';
@@ -57,8 +57,10 @@
           <button class="btn-detail" data-id="${entry.id}" type="button">Detalle</button>
           <button class="btn-checkout" data-id="${entry.id}" type="button">Salida</button>
         </div>`;
-      activeVisitorsList.appendChild(card);
+      fragment.appendChild(card);
     });
+    activeVisitorsList.innerHTML = "";
+    activeVisitorsList.appendChild(fragment);
   }
 
   activeVisitorsList.addEventListener('click', (e) => {

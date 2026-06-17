@@ -42,7 +42,7 @@
   font-size: 0.88rem;
   font-weight: 500;
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background 0.2s ease;
 }
 .nav-link:hover, .nav-link.active { color: var(--text-primary); background: var(--icon-btn-bg); }
 .btn-logout {
@@ -53,7 +53,7 @@
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.82rem;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease, color 0.2s ease;
 }
 .btn-logout:hover { border-color: var(--text-primary); color: var(--text-primary); }
 

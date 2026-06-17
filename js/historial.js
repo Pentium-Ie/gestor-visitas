@@ -45,11 +45,11 @@
   }
 
   function renderTable() {
-    historialBody.innerHTML = "";
     if (visitasData.length === 0) {
       historialBody.innerHTML = '<tr><td colspan="8"><p class="empty-state" style="margin:30px 0;">No se encontraron registros.</p></td></tr>';
       return;
     }
+    const fragment = document.createDocumentFragment();
     visitasData.forEach(entry => {
       const dt = formatDate(entry.fecha_ingreso || entry.fecha_programada || entry.created_at);
       const fechaStr = dt ? dt.fecha : '—';
@@ -67,8 +67,10 @@
         <td data-label="Anfitrión">${escapeHtml(anfitrion)}</td>
         <td data-label="Estado"><span class="estado-badge estado-${estadoClass}">${escapeHtml(estado)}</span></td>
         <td data-label="Acción"><button class="btn-historial-detail" data-id="${escapeHtml(entry.id)}" type="button">Detalle</button></td>`;
-      historialBody.appendChild(tr);
+      fragment.appendChild(tr);
     });
+    historialBody.innerHTML = "";
+    historialBody.appendChild(fragment);
   }
 
   historialBody.addEventListener('click', (e) => {
@@ -104,7 +106,11 @@
   historialDetailClose.addEventListener('click', () => cerrarModal(modalHistorialDetail));
   modalHistorialDetail.addEventListener('click', (e) => { if (e.target === modalHistorialDetail) cerrarModal(modalHistorialDetail); });
 
-  historialSearch.addEventListener('input', loadHistorial);
+  let historialTimeout;
+  historialSearch.addEventListener('input', () => {
+    clearTimeout(historialTimeout);
+    historialTimeout = setTimeout(loadHistorial, 300);
+  });
   historialSearchCol.addEventListener('change', loadHistorial);
   historialFechaInicio.addEventListener('change', loadHistorial);
   historialFechaFin.addEventListener('change', loadHistorial);
