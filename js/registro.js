@@ -22,7 +22,7 @@
     try {
       const { data, error } = await supabase
         .from('visitas')
-        .select('*, visitantes!inner(*), anfitriones!left(*)')
+        .select('*, visitantes!inner(*), anfitriones!left(*), autorizadores!left(*)')
         .eq('estado', 'Ingresado')
         .order('fecha_ingreso', { ascending: false });
       if (error) throw error;
@@ -90,6 +90,7 @@
       <span class="label">Nombre</span><span class="value">${escapeHtml(v.nombre)}</span>
       <span class="label">Empresa</span><span class="value">${escapeHtml(v.empresa)}</span>
       <span class="label">Anfitrión</span><span class="value">${escapeHtml(entry.anfitriones?.nombre || '—')}</span>
+      <span class="label">Autorizador</span><span class="value">${escapeHtml(entry.autorizadores?.nombre || '—')}</span>
       <span class="label">Motivo</span><span class="value">${escapeHtml(entry.motivo) || '—'}</span>
       <span class="label">Observaciones</span><span class="value">${escapeHtml(entry.obs_ingreso) || '—'}</span>`;
     modalVisitorDetail.classList.remove('hidden');
@@ -107,6 +108,7 @@
     const empresa = document.getElementById('reg-empresa').value.trim() || 'Particular';
     const motivo = document.getElementById('reg-motivo').value.trim();
     const anfitrionInput = document.getElementById('reg-anfitrion').value.trim();
+    const autorizadorInput = document.getElementById('reg-autorizador').value.trim();
     const obs = document.getElementById('reg-obs').value.trim();
 
     const duplicado = visitasActivas.some(p => p.visitantes.num_doc === numDoc);
@@ -118,12 +120,14 @@
       const visitanteId = await buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa);
       const anfitrionId = await buscarAnfitrion(anfitrionInput);
       if (!anfitrionId) { mostrarToast('Seleccione un anfitrión válido de la lista.', 'error'); toggleLoading(false); return; }
+      const autorizadorId = autorizadorInput ? await buscarPorNombre('autorizadores', autorizadorInput) : null;
       const userId = await getCurrentUserId();
       const fechaIngreso = new Date().toISOString();
 
       const { data: visita, error: visErr } = await supabase.from('visitas').insert({
         visitante_id: visitanteId, anfitrion_id: anfitrionId, motivo: motivo || null,
-        obs_ingreso: obs, fecha_ingreso: fechaIngreso, estado: 'Ingresado', creado_por: userId
+        obs_ingreso: obs, fecha_ingreso: fechaIngreso, estado: 'Ingresado', creado_por: userId,
+        autorizador_id: autorizadorId
       }).select('id').single();
       if (visErr) throw visErr;
 
@@ -133,7 +137,7 @@
         nombre, empresa, motivo: motivo || null, anfitrion_id: anfitrionId,
         anfitrion_nombre: anfitrionInput, estado: 'Ingresado', obs,
         fecha: fechaIngreso, creado_por: userId, grupo_id: grupoId,
-        visita_id: visita.id
+        visita_id: visita.id, autorizador: autorizadorInput || null
       });
       if (histErr) throw histErr;
 
@@ -182,7 +186,8 @@
         anfitrion_id: entry.anfitrion_id, anfitrion_nombre: entry.anfitriones?.nombre || '—',
         estado: 'Retirado', obs, fecha: new Date().toISOString(),
         creado_por: userId, grupo_id: (histGrupo && histGrupo.length > 0) ? histGrupo[0].grupo_id : generarUUID(),
-        visita_id: visitorToCheckoutId
+        visita_id: visitorToCheckoutId,
+        autorizador: entry.autorizadores?.nombre || null
       });
       if (histErr) throw histErr;
 
@@ -217,6 +222,12 @@
     }, 300);
   });
   initAutocomplete('reg-anfitrion', 'anfitriones', 'nombre');
+  initAutocomplete('reg-autorizador', 'autorizadores', 'nombre');
+
+  document.getElementById('btn-limpiar-registro')?.addEventListener('click', () => {
+    document.getElementById('form-registro').reset();
+    document.querySelectorAll('#form-registro input, #form-registro select, #form-registro textarea').forEach(el => el.style.borderColor = '');
+  });
 
   window.AppState = window.AppState || {};
   window.AppState.registro = { renderVisitors };

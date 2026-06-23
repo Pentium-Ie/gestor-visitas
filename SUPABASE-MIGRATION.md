@@ -26,6 +26,7 @@ auth.users (Supabase Auth)
 visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
   ├── visitantes (catálogo normalizado, upsert por tipo_doc+num_doc)
   ├── anfitriones (catálogo de solo lectura, 15 registros seeded)
+  ├── autorizadores (catálogo de autorizadores, 5 registros seeded)
   └── historial (log inmutable, solo INSERT, con visita_id FK)
 ```
 
@@ -52,6 +53,16 @@ visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
 
 Índice GIN trgm en `nombre` para ILIKE.
 
+#### `autorizadores`
+| Columna | Tipo | Notas |
+|---|---|---|
+| id | BIGINT PK | Generated always as identity |
+| nombre | VARCHAR(250) | Búsqueda ILIKE, autocomplete top 3 |
+| activo | BOOLEAN | DEFAULT true |
+| creado_en | TIMESTAMPTZ | DEFAULT now() |
+
+Índice GIN trgm en `nombre` para ILIKE.
+
 #### `visitantes`
 | Columna | Tipo | Notas |
 |---|---|---|
@@ -69,6 +80,7 @@ visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
 | id | UUID PK | Generado con `crypto.randomUUID()` en JS |
 | visitante_id | BIGINT | FK → visitantes(id) |
 | anfitrion_id | BIGINT | FK → anfitriones(id) |
+| autorizador_id | BIGINT | FK → autorizadores(id), nullable |
 | motivo | TEXT | |
 | obs_ingreso | TEXT | |
 | obs_salida | TEXT | CHECK (obs_salida IS NULL OR length(obs_salida) >= 4) |
@@ -103,6 +115,7 @@ CHECK (
 | motivo | TEXT | |
 | anfitrion_id | BIGINT | |
 | anfitrion_nombre | VARCHAR(150) | |
+| autorizador | VARCHAR(250) | Nombre del autorizador en el momento del evento |
 | estado | VARCHAR(20) | CHECK IN ('Programado','Reprogramado','Ingresado','IngresadoProgramado','Retirado','RetiradoAutomatico','Cancelado') |
 | obs | TEXT | |
 | fecha | TIMESTAMPTZ | |
@@ -172,8 +185,9 @@ Nota: `historial` requiere rol `admin` para SELECT/INSERT, y `visitas` requiere 
 1. `buscarVisitantePorDoc(tipo_doc, num_doc)` → auto-fill nombre+empresa
 2. `buscarOCrearVisitante(...)` → upsert en `visitantes`
 3. `buscarAnfitrion(nombre)` → lookup en `anfitriones` (solo lectura, sin creación)
-4. INSERT en `visitas` con `estado='ingresado'`, `fecha_ingreso=now()`
-5. INSERT en `historial` con `estado='ingreso'`, `visita_id=<nueva_visita>`
+4. `buscarPorNombre('autorizadores', nombre)` → lookup opcional en `autorizadores`
+5. INSERT en `visitas` con `estado='Ingresado'`, `fecha_ingreso=now()`, `autorizador_id=<id>`
+6. INSERT en `historial` con `estado='Ingresado'`, `visita_id=<nueva_visita>`, `autorizador=<nombre>`
 
 ### Registro de Salida
 1. UPDATE `visitas` set `estado='retirado'`, `fecha_salida=now()`, `obs_salida=...`

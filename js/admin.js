@@ -176,8 +176,8 @@
       html += '<p class="empty-state">No hay eventos registrados.</p>';
     } else {
       html += '<div class="historial-table-wrapper" style="max-height:400px"><table class="historial-table"><thead><tr>' +
-        '<th scope="col" style="width:18%">Fecha/Hora</th><th scope="col" style="width:14%">Evento</th><th scope="col" style="width:22%">Visitante</th>' +
-        '<th scope="col" style="width:16%">Documento</th><th scope="col" style="width:16%">Anfitrión</th><th scope="col" style="width:14%">Usuario</th>' +
+        '<th scope="col" style="width:16%">Fecha/Hora</th><th scope="col" style="width:12%">Evento</th><th scope="col" style="width:18%">Visitante</th>' +
+        '<th scope="col" style="width:14%">Documento</th><th scope="col" style="width:14%">Anfitrión</th><th scope="col" style="width:12%">Autorizador</th><th scope="col" style="width:14%">Usuario</th>' +
         '</tr></thead><tbody>';
       rows.forEach(r => {
         const d = new Date(r.fecha);
@@ -185,7 +185,7 @@
         const horaStr = d.toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' });
         const userEmail = r.creado_por ? (emailMap[r.creado_por] || r.creado_por.substring(0, 8) + '…') : '—';
         const estadoClean = r.estado.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/g, '');
-        html += '<tr><td>' + fechaStr + '<br><span class="hora">' + horaStr + '</span></td><td><span class="estado-badge estado-' + estadoClean + '">' + escapeHtml(r.estado) + '</span></td><td>' + escapeHtml(r.nombre) + '</td><td>' + escapeHtml(r.tipo_doc) + ': ' + escapeHtml(r.num_doc) + '</td><td>' + escapeHtml(r.anfitrion_nombre) + '</td><td style="font-size:0.8rem;color:var(--text-muted)">' + escapeHtml(userEmail) + '</td></tr>';
+        html += '<tr><td>' + fechaStr + '<br><span class="hora">' + horaStr + '</span></td><td><span class="estado-badge estado-' + estadoClean + '">' + escapeHtml(r.estado) + '</span></td><td>' + escapeHtml(r.nombre) + '</td><td>' + escapeHtml(r.tipo_doc) + ': ' + escapeHtml(r.num_doc) + '</td><td>' + escapeHtml(r.anfitrion_nombre) + '</td><td style="font-size:0.8rem;color:var(--text-muted)">' + (r.autorizador ? escapeHtml(r.autorizador) : '—') + '</td><td style="font-size:0.8rem;color:var(--text-muted)">' + escapeHtml(userEmail) + '</td></tr>';
       });
       html += '</tbody></table></div>';
     }

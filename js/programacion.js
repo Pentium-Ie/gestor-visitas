@@ -27,7 +27,7 @@
     try {
       const { data, error } = await supabase
         .from('visitas')
-        .select('*, visitantes!inner(*), anfitriones!left(*)')
+        .select('*, visitantes!inner(*), anfitriones!left(*), autorizadores!left(*)')
         .eq('estado', 'Programado')
         .order('fecha_programada', { ascending: true });
       if (error) throw error;
@@ -89,6 +89,7 @@
       <span class="label">Empresa</span><span class="value">${escapeHtml(v.empresa)}</span>
       <span class="label">Motivo</span><span class="value">${escapeHtml(visita.motivo || '—')}</span>
       <span class="label">Anfitrión</span><span class="value">${escapeHtml(anfitrionNombre)}</span>
+      <span class="label">Autorizador</span><span class="value">${escapeHtml(visita.autorizadores?.nombre || '—')}</span>
       <span class="label">Fecha/Hora</span><span class="value">${fechaStr} — ${horaStr}</span>`;
     modalDetalle.classList.remove('hidden');
     modalDetalle.setAttribute('aria-active', 'true');
@@ -110,6 +111,7 @@
     const empresa = document.getElementById('prog-empresa').value.trim() || 'Particular';
     const motivo = document.getElementById('prog-motivo').value.trim();
     const anfitrionInput = document.getElementById('prog-anfitrion').value.trim();
+    const autorizadorInput = document.getElementById('prog-autorizador').value.trim();
 
     toggleLoading(true);
     disableButton(progSubmitBtn, editandoId ? 'Reprogramando...' : 'Agendando...');
@@ -117,13 +119,15 @@
       const visitanteId = await buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa);
       const anfitrionId = await buscarAnfitrion(anfitrionInput);
       if (!anfitrionId) { mostrarToast('Seleccione un anfitrión válido de la lista.', 'error'); toggleLoading(false); enableButton(progSubmitBtn); return; }
+      const autorizadorId = autorizadorInput ? await buscarPorNombre('autorizadores', autorizadorInput) : null;
       const userId = await getCurrentUserId();
 
       if (editandoId) {
         const { error: upErr } = await supabase.from('visitas').update({
           fecha_programada: new Date(fecha).toISOString(),
           motivo: motivo || null,
-          anfitrion_id: anfitrionId
+          anfitrion_id: anfitrionId,
+          autorizador_id: autorizadorId
         }).eq('id', editandoId);
         if (upErr) throw upErr;
 
@@ -142,7 +146,8 @@
           fecha: new Date().toISOString(),
           fecha_programada: new Date(fecha).toISOString(),
           creado_por: userId,
-          grupo_id: generarUUID()
+          grupo_id: generarUUID(),
+          autorizador: autorizadorInput || null
         });
         if (histErr) throw histErr;
 
@@ -155,7 +160,8 @@
           motivo: motivo || null,
           fecha_programada: new Date(fecha).toISOString(),
           estado: 'Programado',
-          creado_por: userId
+          creado_por: userId,
+          autorizador_id: autorizadorId
         }).select('id').single();
         if (insErr) throw insErr;
 
@@ -175,7 +181,8 @@
           fecha: new Date().toISOString(),
           fecha_programada: new Date(fecha).toISOString(),
           creado_por: userId,
-          grupo_id: grupoId
+          grupo_id: grupoId,
+          autorizador: autorizadorInput || null
         });
         if (histErr) throw histErr;
 
@@ -209,6 +216,7 @@
     document.getElementById('prog-empresa').value = v.empresa;
     document.getElementById('prog-motivo').value = visita.motivo || '';
     document.getElementById('prog-anfitrion').value = visita.anfitriones?.nombre || '';
+    document.getElementById('prog-autorizador').value = visita.autorizadores?.nombre || '';
     document.getElementById('prog-fecha').value = visita.fecha_programada.slice(0, 16);
     editandoId = visita.id;
     cerrarModal(modalDetalle);
@@ -280,7 +288,8 @@
         fecha: new Date().toISOString(),
         fecha_programada: visita.fecha_programada,
         creado_por: userId,
-        grupo_id: generarUUID()
+        grupo_id: generarUUID(),
+        autorizador: visita.autorizadores?.nombre || null
       });
       if (histErr) throw histErr;
 
@@ -334,7 +343,8 @@
         fecha: new Date().toISOString(),
         fecha_programada: visita.fecha_programada,
         creado_por: userId,
-        grupo_id: grupoId
+        grupo_id: grupoId,
+        autorizador: visita.autorizadores?.nombre || null
       });
       if (histErr) throw histErr;
 
@@ -369,6 +379,12 @@
     }, 300);
   });
   initAutocomplete('prog-anfitrion', 'anfitriones', 'nombre');
+  initAutocomplete('prog-autorizador', 'autorizadores', 'nombre');
+
+  document.getElementById('btn-limpiar-programacion')?.addEventListener('click', () => {
+    document.getElementById('form-programacion').reset();
+    document.querySelectorAll('#form-programacion input, #form-programacion select, #form-programacion textarea').forEach(el => el.style.borderColor = '');
+  });
 
   window.AppState = window.AppState || {};
   window.AppState.programacion = { renderProgramadas };

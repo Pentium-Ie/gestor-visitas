@@ -189,13 +189,17 @@ async function buscarOCrearVisitante(tipoDoc, numDoc, nombre, empresa) {
   return nuevo.id;
 }
 
-async function buscarAnfitrion(nombre) {
+async function buscarPorNombre(tabla, nombre) {
   const { data } = await supabase
-    .from('anfitriones')
+    .from(tabla)
     .select('id')
     .ilike('nombre', nombre.trim())
     .limit(1);
   return (data && data.length > 0) ? data[0].id : null;
+}
+
+async function buscarAnfitrion(nombre) {
+  return buscarPorNombre('anfitriones', nombre);
 }
 
 function logError(nivel, mensaje, detalle) {

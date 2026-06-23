@@ -102,10 +102,15 @@
                   <input type="text" id="reg-anfitrion" placeholder="Área / Nombre del personal" maxlength="150" required>
                 </div>
                 <div class="input-group full-width">
+                  <label for="reg-autorizador">¿Quién autoriza?</label>
+                  <input type="text" id="reg-autorizador" placeholder="Nombre del autorizador" maxlength="150">
+                </div>
+                <div class="input-group full-width">
                   <label for="reg-obs">Observaciones</label>
                   <textarea id="reg-obs" rows="2" placeholder="Notas adicionales..."></textarea>
                 </div>
                 <button type="submit" class="btn-submit">Registrar Ingreso</button>
+                <button type="button" class="btn-clear" id="btn-limpiar-registro">Limpiar</button>
               </form>
             </section>
 
@@ -226,6 +231,10 @@
                   <input type="text" id="prog-anfitrion" placeholder="Área / Nombre del personal" maxlength="150" required>
                 </div>
                 <div class="input-group full-width">
+                  <label for="prog-autorizador">¿Quién autoriza?</label>
+                  <input type="text" id="prog-autorizador" placeholder="Nombre del autorizador" maxlength="150">
+                </div>
+                <div class="input-group full-width">
                   <label for="prog-fecha">Fecha y Hora</label>
                   <div class="date-input-wrapper">
                     <input type="datetime-local" id="prog-fecha" class="with-date-btn" required>
@@ -233,6 +242,7 @@
                   </div>
                 </div>
                 <button type="submit" class="btn-submit">Agendar Visita</button>
+                <button type="button" class="btn-clear" id="btn-limpiar-programacion">Limpiar</button>
               </form>
             </section>
 

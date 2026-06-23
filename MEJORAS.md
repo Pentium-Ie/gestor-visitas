@@ -413,3 +413,71 @@ DELETE FROM visitas;
 | `SUPABASE-MIGRATION.md` | CHECK constraints y estados actualizados |
 | `AGENTS.md` | Estados actualizados en esquema y auto-cierre |
 | `MEJORAS.md` | Esta sesión |
+
+---
+
+## 2026-06-23 — Sesión 6 (Tabla autorizadores + Botón Limpiar)
+
+### Objetivo
+Agregar tabla `autorizadores` (catálogo similar a anfitriones), campo "¿Quién autoriza?" en Registro y Programación, y botón "Limpiar" en ambos formularios.
+
+### 19. 🟢 Nueva tabla `autorizadores`
+
+**Migración ejecutada vía Management API:**
+```sql
+CREATE TABLE autorizadores (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  nombre VARCHAR(250) NOT NULL,
+  activo BOOLEAN DEFAULT true,
+  creado_en TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_autorizadores_nombre ON autorizadores USING gin (nombre gin_trgm_ops);
+
+ALTER TABLE visitas ADD COLUMN autorizador_id BIGINT REFERENCES autorizadores(id);
+ALTER TABLE historial ADD COLUMN autorizador VARCHAR(250);
+```
+
+Seed data: Carlos Mendoza, Ana Lucía Torres, Roberto Sánchez, María Fernanda López, Pedro Castillo.
+
+### 20. 🟢 Nuevo campo "¿Quién autoriza?"
+
+| Formulario | Campo | Autocomplete |
+|---|---|---|
+| Registro | `reg-autorizador` | `autorizadores.nombre` ILIKE top 3 |
+| Programación | `prog-autorizador` | `autorizadores.nombre` ILIKE top 3 |
+
+- Se persiste tanto el `autorizador_id` (FK) en `visitas` como el nombre en `historial.autorizador`
+- Se muestra en modales detalle (registro, programación, historial) y en log de auditoría (admin)
+
+### 21. 🟢 Botón "Limpiar" en formularios
+
+| Formulario | Botón | Comportamiento |
+|---|---|---|
+| Registro | `btn-limpiar-registro` | `form.reset()` + limpia bordes rojos |
+| Programación | `btn-limpiar-programacion` | `form.reset()` + limpia bordes rojos |
+
+### 22. 🟢 Función genérica `buscarPorNombre`
+
+**Archivo:** `helpers.js`
+
+```js
+async function buscarPorNombre(tabla, nombre) {
+  // ILIKE lookup para autocomplete, retorna id
+}
+```
+Reemplaza el uso directo de `buscarAnfitrion` para autorizadores.
+
+### Archivos modificados (sesión 6)
+
+| Archivo | Cambios |
+|---------|---------|
+| `index.html` | Autorizador input + botón limpiar en ambos formularios |
+| `js/helpers.js` | Nueva función `buscarPorNombre()`, `buscarAnfitrion` ahora la usa |
+| `js/registro.js` | initAutocomplete autorizador, autorizador_id en insert, limpiar handler, autorizadores join en select |
+| `js/programacion.js` | initAutocomplete autorizador, autorizador_id en insert/update/edit, limpiar handler, autorizadores join en select, autorizador en detail modal + historial eventos |
+| `js/historial.js` | autorizadores join en select, autorizador en detail modal |
+| `js/admin.js` | Columna autorizador en log de auditoría |
+| `css/components.css` | Clase `.btn-clear` para botón limpiar |
+| `SUPABASE-MIGRATION.md` | Tabla autorizadores, columnas en visitas e historial, flujo actualizado |
+| `AGENTS.md` | Vistas actualizadas con autorizador + limpiar |
+| `MEJORAS.md` | Esta sesión |

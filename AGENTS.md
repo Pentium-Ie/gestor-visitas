@@ -13,8 +13,8 @@ Sistema web de gestión de visitas con diseño glass-morphism, persistencia en S
 
 ## Vistas
 1. **Login** — formulario en español, toggle contraseña SVG, CSP protección, validación perfil activo post-login, lockout client-side (4 intentos)
-2. **Registro** — formulario validado (DNI 8 dígitos, maxlength campos), autocomplete anfitrión (ILIKE top 3), auto-fill visitante por documento (debounce 300ms), lista en planta, modales salida (obs ≥4 chars) y detalle, evento delegado con `closest()`
-3. **Programación** — formulario con datetime-local (horario 07-19 validado), autocomplete anfitrión, modal detalle (editar/reprogramar/confirmar ingreso/cancelar con motivo), modal confirmación registro con observaciones
+2. **Registro** — formulario validado (DNI 8 dígitos, maxlength campos), autocomplete anfitrión + autorizador (ILIKE top 3), botón limpiar, auto-fill visitante por documento (debounce 300ms), lista en planta, modales salida (obs ≥4 chars) y detalle, evento delegado con `closest()`
+3. **Programación** — formulario con datetime-local (horario 07-19 validado), autocomplete anfitrión + autorizador, botón limpiar, modal detalle (editar/reprogramar/confirmar ingreso/cancelar con motivo), modal confirmación registro con observaciones
 4. **Historial** — tabla centrada, búsqueda ILIKE por columna, filtro rango fechas, modal detalle con fechas separadas (programado/ingreso/salida), LIMIT 1000
 5. **Administración** — KPIs (visitas hoy, tiempo promedio, top anfitrión, conversión programados), donut chart + evolución mensual (Chart.js v4 carga dinámica con fallback CDN), log auditoría desde `historial` con email vía `fn_get_users_info`, log errores local
 
@@ -34,6 +34,7 @@ Sistema web de gestión de visitas con diseño glass-morphism, persistencia en S
 - **`historial`** — log inmutable (solo INSERT, FK `visita_id` → visitas). RLS: solo admin SELECT. CHECK: estado IN ('Programado','Reprogramado','Ingresado','IngresadoProgramado','Retirado','RetiradoAutomatico','Cancelado')
 - **`visitantes`** — upsert por tipo_doc+num_doc. CHECK: tipo_doc IN ('DNI','CE','PAS')
 - **`anfitriones`** — solo lectura (15 registros seeded). Índice GIN trgm en nombre.
+- **`autorizadores`** — catálogo de autorizadores (5 registros seeded). Índice GIN trgm en nombre.
 - **`perfiles`** — FK `ON DELETE RESTRICT` a `auth.users(id)`. CHECK: rol IN ('admin','operador')
 - Función `fn_get_users_info(user_ids UUID[])` para lookup batch de emails
 - 6 KPI functions (`fn_kpi_visitas_hoy`, `fn_kpi_tiempo_promedio`, `fn_kpi_top_anfitrion`, `fn_kpi_conversion_programados`, `fn_kpi_evolucion_mensual`, `fn_kpi_distribucion_anfitriones`)

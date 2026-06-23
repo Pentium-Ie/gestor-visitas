@@ -20,7 +20,7 @@
       const fechaInicio = historialFechaInicio.value;
       const fechaFin = historialFechaFin.value;
 
-      let query = supabase.from('visitas').select('*, visitantes!inner(*), anfitriones!left(*)');
+      let query = supabase.from('visitas').select('*, visitantes!inner(*), anfitriones!left(*), autorizadores!left(*)');
       if (search) query = query.ilike(searchCol, `%${search}%`);
       if (fechaInicio) query = query.gte('fecha_ingreso', fechaInicio + 'T00:00:00');
       if (fechaFin) query = query.lte('fecha_ingreso', fechaFin + 'T23:59:59');
@@ -92,6 +92,7 @@
       <span class="label">Empresa</span><span class="value">${escapeHtml(entry.visitantes.empresa)}</span>
       <span class="label">Motivo</span><span class="value">${escapeHtml(entry.motivo || '—')}</span>
       <span class="label">Anfitrión</span><span class="value">${escapeHtml(anfitrion)}</span>
+      <span class="label">Autorizador</span><span class="value">${escapeHtml(entry.autorizadores?.nombre || '—')}</span>
       ${dp ? `<span class="label">Fecha Programada</span><span class="value">${dp.fecha} — ${dp.hora}</span>` : ''}
       ${di ? `<span class="label">Fecha Ingreso</span><span class="value">${di.fecha} — ${di.hora}</span>` : ''}
       ${ds ? `<span class="label">Fecha Salida</span><span class="value">${ds.fecha} — ${ds.hora}</span>` : ''}
