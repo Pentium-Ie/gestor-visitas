@@ -73,6 +73,20 @@
     activeVisitorsList.appendChild(fragment);
   }
 
+  function updateDurations() {
+    const cards = activeVisitorsList?.querySelectorAll('.visitor-card');
+    if (!cards) return;
+    cards.forEach(card => {
+      const btn = card.querySelector('.btn-detail');
+      const id = btn?.dataset?.id;
+      if (!id) return;
+      const entry = visitasActivas.find(e => e.id === id);
+      if (!entry) return;
+      const badge = card.querySelector('.duration-badge');
+      if (badge) badge.textContent = formatDuration(entry.fecha_ingreso);
+    });
+  }
+
   activeVisitorsList.addEventListener('click', (e) => {
     const checkoutBtn = e.target.closest('.btn-checkout');
     if (checkoutBtn) return openCheckoutModal(checkoutBtn.getAttribute('data-id'));
@@ -242,7 +256,7 @@
     document.querySelectorAll('#form-registro input, #form-registro select, #form-registro textarea').forEach(el => el.style.borderColor = '');
   });
 
-  setInterval(() => { if (visitasActivas.length > 0) renderVisitors(); }, 60000);
+  setInterval(() => { if (visitasActivas.length > 0) updateDurations(); }, 60000);
 
   window.AppState = window.AppState || {};
   window.AppState.registro = { renderVisitors };
