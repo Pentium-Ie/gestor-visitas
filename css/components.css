@@ -101,9 +101,10 @@
 
 .visitor-card { display: flex; align-items: center; justify-content: space-between; background: rgba(255, 255, 255, 0.01); border: 1px solid var(--border-subtle); padding: 12px 16px; border-radius: 10px; gap: 8px; }
 .visitor-info { flex: 1; min-width: 0; }
-.visitor-info p { margin: 0; color: var(--text-primary); font-size: 0.88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.visitor-name-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.visitor-name { color: var(--text-primary); font-size: 0.88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .visitor-info span { font-size: 0.75rem; color: var(--text-accent); display: block; margin-top: 2px; }
-.duration-badge { font-size: 0.65rem; font-weight: 600; color: var(--warning-color); background: rgba(255, 200, 50, 0.12); padding: 1px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; white-space: nowrap; }
+.duration-badge { flex-shrink: 0; font-size: 0.65rem; font-weight: 600; color: var(--warning-color); background: rgba(255, 200, 50, 0.12); padding: 1px 7px; border-radius: 4px; white-space: nowrap; }
 .visitor-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
 .btn-checkout { background: rgba(255, 85, 85, 0.08); border: 1px solid rgba(255, 85, 85, 0.25); color: #ff6666; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; min-height: 38px; transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease; }

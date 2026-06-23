@@ -21,7 +21,12 @@
   .workspace-container { height: auto; min-height: auto; }
   .workspace-panel { position: relative; height: auto; }
   .workspace-panel .glass-content { padding: 20px; }
-  .grid-workspace { flex-direction: column; gap: 30px; height: auto; }
+  .grid-workspace {
+    flex-direction: column;
+    gap: 30px;
+    flex: none;
+    height: auto;
+  }
   .list-section { border-left: none; border-top: 1px solid var(--border-subtle); padding-left: 0; padding-top: 25px; }
 
   .modal-glass { width: 90%; padding: 20px; }

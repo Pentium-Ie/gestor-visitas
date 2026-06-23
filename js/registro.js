@@ -60,7 +60,7 @@
       card.className = 'visitor-card';
       card.innerHTML = `
         <div class="visitor-info">
-          <p>${escapeHtml(v.nombre)} <span class="duration-badge">${duracion}</span></p>
+          <div class="visitor-name-row"><span class="visitor-name">${escapeHtml(v.nombre)}</span><span class="duration-badge">${duracion}</span></div>
           <span>${escapeHtml(v.empresa)} • Ref: ${escapeHtml(anfitrionNombre)}</span>
         </div>
         <div class="visitor-actions">
