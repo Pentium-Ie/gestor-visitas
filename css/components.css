@@ -94,7 +94,7 @@
 .modal-actions .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
 .modal-actions .btn-danger:hover { background: #ff3333; }
 
-.inside-list { flex: 1; display: flex; flex-direction: column; gap: 10px; max-height: 440px; overflow-y: auto; }
+.inside-list { flex: 1; display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; }
 
 .empty-state { color: var(--text-accent); font-size: 0.8rem; text-align: center; margin-top: 20px; }
 

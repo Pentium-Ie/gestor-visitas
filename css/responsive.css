@@ -23,7 +23,7 @@
   .workspace-panel .glass-content { padding: 20px; }
   .grid-workspace { flex-direction: column; gap: 30px; height: auto; }
   .list-section { border-left: none; border-top: 1px solid var(--border-subtle); padding-left: 0; padding-top: 25px; }
-  .inside-list { max-height: 350px; }
+
   .modal-glass { width: 90%; padding: 20px; }
 
   .historial-table-wrapper { max-height: none; }

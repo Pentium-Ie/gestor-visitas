@@ -5,7 +5,7 @@
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   box-shadow: 0 40px 80px var(--glass-shadow);
-  overflow: hidden;
+  overflow: clip;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -72,6 +72,7 @@
   padding: 30px;
   max-width: 90vw;
   box-shadow: 0 40px 80px var(--glass-shadow);
+  overflow: clip;
 }
 .modal-glass.modal-sm { width: 380px; }
 .modal-glass.modal-md { width: 450px; }

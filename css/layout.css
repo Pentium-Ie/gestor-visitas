@@ -1,6 +1,9 @@
 .layout-login {
   position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  margin: auto;
   width: 380px;
+  height: fit-content;
   min-height: 0;
 }
 .layout-login .glass-content { width: 80%; }
@@ -75,7 +78,7 @@
 #sec-historial .glass-content { display: flex; flex-direction: column; }
 .workspace-panel h3 { margin: 0 0 18px 0; color: var(--text-primary); font-size: 1.15rem; font-weight: 600; }
 
-.grid-workspace { display: flex; gap: 35px; height: 100%; }
+.grid-workspace { display: flex; gap: 35px; height: 100%; min-height: 0; overflow-y: auto; }
 .form-section { flex: 1.4; }
 .list-section { flex: 1; border-left: 1px solid rgba(255, 255, 255, 0.05); padding-left: 35px; display: flex; flex-direction: column; }
 
