@@ -10,7 +10,7 @@
   body { overflow-y: auto; padding: calc(var(--safe-top, 0px) + 10px) var(--safe-right, 0px) var(--safe-bottom, 0px) var(--safe-left, 0px); }
   .canvas { align-items: flex-start; padding: 15px 0; height: auto; min-height: 100vh; }
   .layout-login { width: 90%; max-width: 360px; height: auto; position: relative; margin: auto; }
-  .layout-login .glass-content { padding: 35px 0; }
+  .layout-login .glass-content { padding: 30px; }
   .dashboard-wrapper { height: auto; min-height: auto; gap: 15px; }
   .system-header { height: auto; padding: 15px 0; }
   .header-inner { width: 90%; flex-direction: column; gap: 10px; text-align: center; }
