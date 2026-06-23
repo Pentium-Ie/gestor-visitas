@@ -109,8 +109,10 @@
                   <label for="reg-obs">Observaciones</label>
                   <textarea id="reg-obs" rows="2" placeholder="Notas adicionales..."></textarea>
                 </div>
-                <button type="submit" class="btn-submit">Registrar Ingreso</button>
-                <button type="button" class="btn-clear" id="btn-limpiar-registro">Limpiar</button>
+                <div class="form-actions">
+                  <button type="submit" class="btn-submit">Registrar Ingreso</button>
+                  <button type="button" class="btn-clear" id="btn-limpiar-registro">Limpiar</button>
+                </div>
               </form>
             </section>
 
@@ -136,6 +138,7 @@
                       <option value="empresa">Empresa</option>
                       <option value="motivo">Motivo</option>
                       <option value="anfitrion">Anfitrión</option>
+                      <option value="autorizador">Autorizador</option>
                     </select>
                     <input type="text" id="historial-search" placeholder="Escribir filtro...">
                   </div>
@@ -241,8 +244,10 @@
                     <button type="button" class="icon-btn date-picker-btn" aria-label="Seleccionar fecha y hora" data-target="prog-fecha"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>
                   </div>
                 </div>
-                <button type="submit" class="btn-submit">Agendar Visita</button>
-                <button type="button" class="btn-clear" id="btn-limpiar-programacion">Limpiar</button>
+                <div class="form-actions">
+                  <button type="submit" class="btn-submit">Agendar Visita</button>
+                  <button type="button" class="btn-clear" id="btn-limpiar-programacion">Limpiar</button>
+                </div>
               </form>
             </section>
 
@@ -264,8 +269,11 @@
           <h3 id="modal-salida-title">Confirmar Salida</h3>
           <p id="modal-visitor-info">¿Confirmar la salida de la visita?</p>
           <div class="input-group">
-            <label for="exit-obs">Observación de Salida</label>
-            <textarea id="exit-obs" rows="3" placeholder="Ninguna novedad..."></textarea>
+            <div class="label-row">
+              <label for="exit-obs">Observación de Salida</label>
+              <span class="char-count" id="exit-obs-count">0 caracteres (mín. 4)</span>
+            </div>
+            <textarea id="exit-obs" rows="3" placeholder="Ninguna novedad..." maxlength="500"></textarea>
           </div>
           <div class="modal-actions">
             <button type="button" id="modal-cancel" class="btn-secondary">Cancelar</button>
@@ -311,8 +319,11 @@
           <h3 id="modal-confirm-title">Confirmar Registro</h3>
           <p id="confirm-visitor-name"></p>
           <div class="input-group">
-            <label for="confirm-obs">Observaciones de Ingreso</label>
-            <textarea id="confirm-obs" rows="3" placeholder="Observaciones adicionales..."></textarea>
+            <div class="label-row">
+              <label for="confirm-obs">Observaciones de Ingreso</label>
+              <span class="char-count" id="confirm-obs-count">0</span>
+            </div>
+            <textarea id="confirm-obs" rows="3" placeholder="Observaciones adicionales..." maxlength="500"></textarea>
           </div>
           <div class="modal-actions">
             <button type="button" id="confirm-cancel" class="btn-secondary">Cancelar</button>
@@ -342,8 +353,11 @@
           <h3 id="modal-cancel-title">Confirmar Cancelación</h3>
           <p id="cancel-visitor-name"></p>
           <div class="input-group">
-            <label for="cancel-obs">Motivo de Cancelación</label>
-            <textarea id="cancel-obs" rows="3" placeholder="Opcional..."></textarea>
+            <div class="label-row">
+              <label for="cancel-obs">Motivo de Cancelación</label>
+              <span class="char-count" id="cancel-obs-count">0</span>
+            </div>
+            <textarea id="cancel-obs" rows="3" placeholder="Opcional..." maxlength="500"></textarea>
           </div>
           <div class="modal-actions">
             <button type="button" id="cancel-no" class="btn-secondary">Volver</button>

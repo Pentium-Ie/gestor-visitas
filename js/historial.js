@@ -8,12 +8,12 @@
   const modalHistorialDetailContent = document.getElementById('historial-detail-content');
   const historialDetailClose = document.getElementById('historial-detail-close');
 
-  const COL_MAP = { nombre: 'visitantes.nombre', empresa: 'visitantes.empresa', motivo: 'motivo', anfitrion: 'anfitriones.nombre' };
-  let visitasData = [];
+  const COL_MAP = { nombre: 'visitantes.nombre', empresa: 'visitantes.empresa', motivo: 'motivo', anfitrion: 'anfitriones.nombre', autorizador: 'autorizadores.nombre' };
+  let visitasData = [], totalCount = 0;
 
   async function loadHistorial() {
     if (!historialBody) return;
-    toggleLoading(true);
+    mostrarSkeleton(historialBody, 'row', 5);
     try {
       const search = historialSearch.value.trim();
       const searchCol = COL_MAP[historialSearchCol.value] || 'visitantes.nombre';
@@ -28,14 +28,13 @@
       const { data, error } = await query.order('fecha_ingreso', { ascending: false, nullsLast: true }).limit(1000);
       if (error) throw error;
       visitasData = data || [];
+      totalCount = visitasData.length;
       renderTable();
     } catch (err) {
       console.error('Error cargando historial:', err);
       historialBody.innerHTML = '<tr><td colspan="8"><p class="empty-state" style="margin:30px 0;">Error al cargar historial.</p></td></tr>';
       mostrarToast('Error al cargar historial: ' + err.message, 'error');
-    } finally {
-      toggleLoading(false);
-    }
+    } finally { }
   }
 
   function formatDate(isoStr) {
@@ -45,6 +44,10 @@
   }
 
   function renderTable() {
+    const historialHeader = document.querySelector('.historial-header');
+    let rc = document.getElementById('result-count');
+    if (!rc) { rc = document.createElement('p'); rc.id = 'result-count'; rc.className = 'result-count'; historialHeader?.after(rc); }
+    rc.textContent = totalCount > 0 ? `Mostrando ${totalCount} registro(s)` : '';
     if (visitasData.length === 0) {
       historialBody.innerHTML = '<tr><td colspan="8"><p class="empty-state" style="margin:30px 0;">No se encontraron registros.</p></td></tr>';
       return;

@@ -23,7 +23,7 @@
 
   async function renderProgramadas() {
     if (!scheduledVisitorsList) return;
-    toggleLoading(true);
+    mostrarSkeleton(scheduledVisitorsList, 'card', 3);
     try {
       const { data, error } = await supabase
         .from('visitas')
@@ -37,9 +37,7 @@
       console.error('Error cargando programadas:', err);
       logError('error', 'Error cargando programadas', err.message);
       scheduledVisitorsList.innerHTML = '<p class="empty-state">Error al cargar datos.</p>';
-    } finally {
-      toggleLoading(false);
-    }
+    } finally { }
   }
 
   function renderList() {

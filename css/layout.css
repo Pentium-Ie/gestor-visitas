@@ -1,7 +1,7 @@
 .layout-login {
   position: absolute;
   width: 380px;
-  height: 480px;
+  min-height: 0;
 }
 .layout-login .glass-content { width: 80%; }
 .login-form h2 { margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.8rem; }
@@ -33,7 +33,7 @@
   justify-content: space-between;
 }
 .system-header .logo { color: var(--text-primary); font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; }
-.system-header .logo span { color: var(--text-accent); font-weight: 300; }
+.system-header .logo span { color: var(--text-primary); font-weight: 400; opacity: 0.6; }
 .system-nav { display: flex; gap: 6px; }
 .nav-link {
   color: var(--text-accent);

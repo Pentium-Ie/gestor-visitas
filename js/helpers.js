@@ -114,15 +114,26 @@ function initAutocomplete(inputId, supabaseTable, displayField, onSelect) {
   const list = document.createElement('ul');
   list.className = 'autocomplete-list';
   document.body.appendChild(list);
-  let timeout;
+  let timeout, selectedIndex = -1;
   function posicionarLista() {
     const rect = input.getBoundingClientRect();
     list.style.left = `${rect.left}px`;
     list.style.top = `${rect.bottom}px`;
     list.style.width = `${rect.width}px`;
   }
+  function seleccionarItem(texto) {
+    input.value = texto;
+    list.innerHTML = '';
+    list.classList.remove('active');
+    selectedIndex = -1;
+    if (onSelect) onSelect({ [displayField]: texto });
+  }
+  function obtenerItems() {
+    return Array.from(list.querySelectorAll('li'));
+  }
   input.addEventListener('input', () => {
     clearTimeout(timeout);
+    selectedIndex = -1;
     const val = input.value.trim();
     if (val.length < 1) { list.innerHTML = ''; list.classList.remove('active'); return; }
     timeout = setTimeout(async () => {
@@ -133,16 +144,15 @@ function initAutocomplete(inputId, supabaseTable, displayField, onSelect) {
         .limit(3)
         .order(displayField, { ascending: true });
       list.innerHTML = '';
+      selectedIndex = -1;
       if (data && data.length > 0) {
         data.forEach(r => {
           const li = document.createElement('li');
           li.textContent = r[displayField];
+          li.setAttribute('role', 'option');
           li.addEventListener('mousedown', (e) => {
             e.preventDefault();
-            input.value = r[displayField];
-            list.innerHTML = '';
-            list.classList.remove('active');
-            if (onSelect) onSelect(r);
+            seleccionarItem(r[displayField]);
           });
           list.appendChild(li);
         });
@@ -153,10 +163,26 @@ function initAutocomplete(inputId, supabaseTable, displayField, onSelect) {
       }
     }, 200);
   });
+  input.addEventListener('keydown', (e) => {
+    const items = obtenerItems();
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, 0);
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      seleccionarItem(items[selectedIndex].textContent);
+      return;
+    } else return;
+    items.forEach((li, i) => li.classList.toggle('autocomplete-hover', i === selectedIndex));
+  });
   input.addEventListener('focus', () => { if (list.children.length > 0) { posicionarLista(); list.classList.add('active'); } });
   window.addEventListener('scroll', () => { list.classList.remove('active'); }, true);
   document.addEventListener('click', (e) => {
-    if (e.target !== input && !list.contains(e.target)) { list.innerHTML = ''; list.classList.remove('active'); }
+    if (e.target !== input && !list.contains(e.target)) { list.innerHTML = ''; list.classList.remove('active'); selectedIndex = -1; }
   });
 }
 
@@ -262,6 +288,29 @@ async function verificarAutoCierre() {
   } catch (e) {
     logError('warn', 'verificarAutoCierre', e.message);
   }
+}
+
+function initCharCount(textareaId, countId, minimo) {
+  const ta = document.getElementById(textareaId);
+  const ct = document.getElementById(countId);
+  if (!ta || !ct) return;
+  ta.addEventListener('input', () => {
+    const len = ta.value.length;
+    ct.textContent = minimo ? `${len} caracteres (mín. ${minimo})` : String(len);
+    ct.className = 'char-count';
+    if (minimo && len >= minimo) ct.classList.add('valid');
+    else if (minimo && len > 0) ct.classList.add('invalid');
+  });
+}
+
+function mostrarSkeleton(container, tipo, cantidad) {
+  if (!container) return;
+  cantidad = cantidad || 3;
+  let html = '';
+  for (let i = 0; i < cantidad; i++) {
+    html += tipo === 'row' ? `<div class="skeleton skeleton-row"></div>` : `<div class="skeleton skeleton-card"></div>`;
+  }
+  container.innerHTML = html;
 }
 
 document.addEventListener('click', function(e) {

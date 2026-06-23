@@ -18,7 +18,7 @@
 
   async function renderVisitors() {
     if (!activeVisitorsList) return;
-    toggleLoading(true);
+    mostrarSkeleton(activeVisitorsList, 'card', 3);
     try {
       const { data, error } = await supabase
         .from('visitas')
@@ -32,9 +32,18 @@
       console.error('Error cargando visitas activas:', err);
       logError('error', 'Error cargando visitas activas', err.message);
       activeVisitorsList.innerHTML = '<p class="empty-state">Error al cargar datos.</p>';
-    } finally {
-      toggleLoading(false);
-    }
+    } finally { }
+  }
+
+  function formatDuration(isoStart) {
+    if (!isoStart) return '';
+    const diff = Date.now() - new Date(isoStart).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'Ahora';
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    const rest = mins % 60;
+    return `${hrs}h ${rest}m`;
   }
 
   function renderList() {
@@ -46,11 +55,12 @@
     visitasActivas.forEach(entry => {
       const v = entry.visitantes;
       const anfitrionNombre = entry.anfitriones?.nombre || '—';
+      const duracion = formatDuration(entry.fecha_ingreso);
       const card = document.createElement('div');
       card.className = 'visitor-card';
       card.innerHTML = `
         <div class="visitor-info">
-          <p>${escapeHtml(v.nombre)}</p>
+          <p>${escapeHtml(v.nombre)} <span class="duration-badge">${duracion}</span></p>
           <span>${escapeHtml(v.empresa)} • Ref: ${escapeHtml(anfitrionNombre)}</span>
         </div>
         <div class="visitor-actions">
@@ -223,11 +233,16 @@
   });
   initAutocomplete('reg-anfitrion', 'anfitriones', 'nombre');
   initAutocomplete('reg-autorizador', 'autorizadores', 'nombre');
+  initCharCount('exit-obs', 'exit-obs-count', 4);
+  initCharCount('confirm-obs', 'confirm-obs-count');
+  initCharCount('cancel-obs', 'cancel-obs-count');
 
   document.getElementById('btn-limpiar-registro')?.addEventListener('click', () => {
     document.getElementById('form-registro').reset();
     document.querySelectorAll('#form-registro input, #form-registro select, #form-registro textarea').forEach(el => el.style.borderColor = '');
   });
+
+  setInterval(() => { if (visitasActivas.length > 0) renderVisitors(); }, 60000);
 
   window.AppState = window.AppState || {};
   window.AppState.registro = { renderVisitors };
