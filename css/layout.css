@@ -6,7 +6,7 @@
   height: fit-content;
   min-height: 0;
 }
-.layout-login .glass-content { width: 80%; }
+.layout-login .glass-content { width: 100%; padding: 30px; box-sizing: border-box; }
 .login-form h2 { margin: 0 0 6px 0; color: var(--text-primary); font-size: 1.8rem; }
 .login-form .subtitle { margin: 0 0 28px 0; color: var(--text-muted); font-size: 0.85rem; }
 .login-form .error-text { color: var(--danger-color); font-size: 0.78rem; min-height: 18px; margin: -8px 0 12px 0; }

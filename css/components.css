@@ -61,6 +61,7 @@
   grid-column: span 2;
   width: 100%;
   padding: 11px;
+  box-sizing: border-box;
   background: var(--btn-submit-bg);
   border: none;
   border-radius: 8px;
