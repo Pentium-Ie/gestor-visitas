@@ -28,7 +28,7 @@
       const { data, error } = await supabase
         .from('visitas')
         .select('*, visitantes!inner(*), anfitriones!left(*)')
-        .eq('estado', 'programado')
+        .eq('estado', 'Programado')
         .order('fecha_programada', { ascending: true });
       if (error) throw error;
       visitasProgramadas = data || [];
@@ -137,7 +137,7 @@
           motivo: motivo || null,
           anfitrion_id: anfitrionId,
           anfitrion_nombre: anfitrionInput,
-          estado: 'reprogramado',
+          estado: 'Reprogramado',
           obs: '',
           fecha: new Date().toISOString(),
           fecha_programada: new Date(fecha).toISOString(),
@@ -154,7 +154,7 @@
           anfitrion_id: anfitrionId,
           motivo: motivo || null,
           fecha_programada: new Date(fecha).toISOString(),
-          estado: 'programado',
+          estado: 'Programado',
           creado_por: userId
         }).select('id').single();
         if (insErr) throw insErr;
@@ -170,7 +170,7 @@
           motivo: motivo || null,
           anfitrion_id: anfitrionId,
           anfitrion_nombre: anfitrionInput,
-          estado: 'programado',
+          estado: 'Programado',
           obs: '',
           fecha: new Date().toISOString(),
           fecha_programada: new Date(fecha).toISOString(),
@@ -262,7 +262,7 @@
       const v = visita.visitantes;
       const userId = await getCurrentUserId();
 
-      const { error: upErr } = await supabase.from('visitas').update({ estado: 'cancelado' }).eq('id', selectedProgramacionId);
+      const { error: upErr } = await supabase.from('visitas').update({ estado: 'Cancelado' }).eq('id', selectedProgramacionId);
       if (upErr) throw upErr;
 
       const { error: histErr } = await supabase.from('historial').insert({
@@ -275,7 +275,7 @@
         motivo: visita.motivo || null,
         anfitrion_id: visita.anfitrion_id,
         anfitrion_nombre: visita.anfitriones?.nombre || '—',
-        estado: 'cancelada',
+        estado: 'Cancelado',
         obs,
         fecha: new Date().toISOString(),
         fecha_programada: visita.fecha_programada,
@@ -312,7 +312,7 @@
       const userId = await getCurrentUserId();
 
       const { error: upErr } = await supabase.from('visitas').update({
-        estado: 'ingresado',
+        estado: 'Ingresado',
         fecha_ingreso: new Date().toISOString(),
         obs_ingreso: obs
       }).eq('id', visita.id);
@@ -329,7 +329,7 @@
         motivo: visita.motivo || null,
         anfitrion_id: visita.anfitrion_id,
         anfitrion_nombre: visita.anfitriones?.nombre || '—',
-        estado: 'ingreso_programado',
+        estado: 'IngresadoProgramado',
         obs,
         fecha: new Date().toISOString(),
         fecha_programada: visita.fecha_programada,

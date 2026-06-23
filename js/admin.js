@@ -51,13 +51,13 @@
 
     const [{ data: visitasHoy }, { data: retirados }, { data: allVisits }, { data: progData }] = await Promise.all([
       supabase.from('visitas').select('estado').gte('fecha_ingreso', todayStart).lt('fecha_ingreso', todayEnd),
-      supabase.from('visitas').select('fecha_ingreso, fecha_salida').eq('estado', 'retirado').not('fecha_salida', 'is', null).not('fecha_ingreso', 'is', null),
-      supabase.from('visitas').select('anfitrion_id, anfitriones!inner(nombre)').in('estado', ['ingresado', 'retirado']),
-      supabase.from('visitas').select('estado').not('fecha_programada', 'is', null).neq('estado', 'cancelado')
+      supabase.from('visitas').select('fecha_ingreso, fecha_salida').eq('estado', 'Retirado').not('fecha_salida', 'is', null).not('fecha_ingreso', 'is', null),
+      supabase.from('visitas').select('anfitrion_id, anfitriones!inner(nombre)').in('estado', ['Ingresado', 'Retirado']),
+      supabase.from('visitas').select('estado').not('fecha_programada', 'is', null).neq('estado', 'Cancelado')
     ]);
 
     const totalHoy = visitasHoy ? visitasHoy.length : 0;
-    const enPlanta = visitasHoy ? visitasHoy.filter(v => v.estado === 'ingresado').length : 0;
+    const enPlanta = visitasHoy ? visitasHoy.filter(v => v.estado === 'Ingresado').length : 0;
 
     let avgMin = 0;
     if (retirados && retirados.length > 0) {
@@ -71,7 +71,7 @@
     const topHost = sortedHosts[0] || null;
 
     const totalProg = progData ? progData.length : 0;
-    const ingresaronProg = progData ? progData.filter(v => v.estado === 'ingresado' || v.estado === 'retirado').length : 0;
+    const ingresaronProg = progData ? progData.filter(v => v.estado === 'Ingresado' || v.estado === 'Retirado').length : 0;
     const tasaConversion = totalProg > 0 ? Math.round(ingresaronProg * 100 / totalProg) : 0;
 
     adminKPIs.innerHTML = `
@@ -105,7 +105,7 @@
     try {
       const c = getLimaComponents();
       const [{ data: distData }, { data: evoData }] = await Promise.all([
-        supabase.from('visitas').select('anfitrion_id, anfitriones!inner(nombre)').in('estado', ['ingresado', 'retirado']),
+        supabase.from('visitas').select('anfitrion_id, anfitriones!inner(nombre)').in('estado', ['Ingresado', 'Retirado']),
         supabase.from('visitas').select('fecha_ingreso').not('fecha_ingreso', 'is', null).gte('fecha_ingreso', new Date(c.year, c.month - 12, 1).toISOString())
       ]);
 
@@ -206,7 +206,7 @@
         const d = new Date(r.fecha);
         const fechaStr = d.toLocaleDateString('es-PE', { day:'2-digit', month:'short', year:'numeric' });
         const horaStr = d.toLocaleTimeString('es-PE', { hour:'2-digit', minute:'2-digit' });
-        const nivelClass = r.nivel === 'error' ? 'estado-salida' : r.nivel === 'warn' ? 'estado-cancelada' : 'estado-ingreso';
+        const nivelClass = r.nivel === 'error' ? 'estado-retirado' : r.nivel === 'warn' ? 'estado-cancelado' : 'estado-ingresado';
         html += '<tr><td>' + fechaStr + '<br><span class="hora">' + horaStr + '</span></td><td><span class="estado-badge ' + nivelClass + '">' + escapeHtml(r.nivel) + '</span></td><td>' + escapeHtml(r.mensaje) + '</td><td style="font-size:0.78rem;color:var(--text-muted);max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escapeHtml(r.detalle) + '">' + escapeHtml(r.detalle) + '</td></tr>';
       });
       html += '</tbody></table></div>';

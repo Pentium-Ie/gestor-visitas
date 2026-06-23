@@ -308,3 +308,108 @@ Requieren infraestructura server-side o decisiones adicionales:
 | `SUPABASE-MIGRATION.md` | Limpiado: solo esquema actual (sin SQL ejecutado ni migración histórica) |
 | `AUDIT.md` | Simplificado: snapshot de hallazgos con estado actual |
 | `MEJORAS.md` | Esta sesión |
+
+---
+
+## 2026-06-23 — Sesión 4 (Auto-cierre diario 23:00)
+
+### Objetivo
+Implementar cierre automático de visitas a las 23:00 hora Lima: cancelar programados sin ingreso + checkout automático de visitantes en planta.
+
+### 14. 🟢 Función `fn_auto_cierre_diario()` + pg_cron
+
+**Archivo:** `auto-cierre.sql`
+
+| Componente | Descripción |
+|------------|-------------|
+| **Cancelación programados** | Visitas con `estado='programado'` y `fecha_programada` del día actual → `estado='cancelado'`. Historial con `obs='[Auto] Cancelación programada 23:00'` |
+| **Checkout automático** | Visitas con `estado='ingresado'` → `estado='retirado'`, `fecha_salida=NOW()`, `obs_salida='Salida automática 23:00'`. Historial con `estado='salida_automatica'`, `obs='[Auto] Salida automática 23:00'` |
+| **Cron schedule** | `0 4 * * *` UTC (23:00 Lima UTC-5) via `cron.schedule('auto-cierre-2300', ...)` |
+
+**Ejecución:** Correr `auto-cierre.sql` en Supabase SQL Editor con service_role.
+
+### 15. 🟢 Toast informativo al usuario
+
+**Archivos:** `js/helpers.js`, `js/app.js`
+
+- Nueva función `verificarAutoCierre()` en helpers.js que consulta `historial` del día actual con `obs ILIKE '[Auto]%'`
+- Muestra toast con conteo de salidas automáticas y cancelaciones
+- Se llama al entrar al sistema (login + session restore)
+- Se registra en log de errores con nivel `info`
+
+### Archivos modificados (sesión 4)
+
+| Archivo | Cambios |
+|---------|---------|
+| `auto-cierre.sql` | Nuevo: función + cron schedule |
+| `js/helpers.js` | `verificarAutoCierre()` |
+| `js/app.js` | Llamada a `verificarAutoCierre()` tras login y session restore |
+| `AGENTS.md` | Actualizado con nueva funcionalidad |
+| `SUPABASE-MIGRATION.md` | Agregada función y cron |
+
+---
+
+## 2026-06-23 — Sesión 5 (Estandarización Estados + Bug Fix CHECK Constraint)
+
+### Objetivo
+Estandarizar todos los estados a PascalCase en ambas tablas (`visitas` e `historial`), corregir bug del doble CHECK constraint en `historial`, y limpiar datos existentes.
+
+### 16. 🔴 Fix: Doble CHECK constraint en `historial.estado`
+
+**Archivo:** `SUPABASE-MIGRATION.md` (SQL ejecutado)
+
+**Problema:** La tabla `historial` tenía dos CHECK constraints activos simultáneamente:
+- `historial_estado_check` (original): `IN ('ingreso','salida','cancelada','ingreso_programado','salida_automatica','reprogramado','agendado')`
+- `chk_historial_estado` (nuevo, migración Sesión 2): `IN ('ingreso','salida','cancelada','ingreso_programado','salida_automatica','reprogramado','agendado')`
+
+La intersección de ambos constraints creaba una restricción más estricta que excluía `'agendado'` y `'reprogramado'` — causando error `"La inserción o actualización en la tabla 'historial' viola la restricción CHECK 'chk_historial_estado'"` al programar o reprogramar visitas.
+
+**Solución:**
+```sql
+ALTER TABLE historial DROP CONSTRAINT historial_estado_check;
+```
+
+### 17. 🟢 Estandarización estados → PascalCase
+
+**Migración ejecutada vía Management API:**
+```sql
+ALTER TABLE visitas DROP CONSTRAINT visitas_estado_check;
+ALTER TABLE visitas ADD CONSTRAINT visitas_estado_check CHECK (estado IN ('Programado','Ingresado','Retirado','Cancelado'));
+
+ALTER TABLE historial DROP CONSTRAINT chk_historial_estado;
+ALTER TABLE historial ADD CONSTRAINT chk_historial_estado CHECK (estado IN ('Programado','Reprogramado','Ingresado','IngresadoProgramado','Retirado','RetiradoAutomatico','Cancelado'));
+```
+
+**Nuevo mapeo completo:**
+
+| visitas.estado | historial.estado (nuevo) | historial.estado (anterior) |
+|---|---|---|
+| `'Programado'` | `'Programado'` | `'agendado'` |
+| `'Ingresado'` | `'Ingresado'` | `'ingreso'` |
+| `'Ingresado'` | `'IngresadoProgramado'` | `'ingreso_programado'` |
+| `'Retirado'` | `'Retirado'` | `'salida'` |
+| `'Retirado'` | `'RetiradoAutomatico'` | `'salida_automatica'` |
+| `'Cancelado'` | `'Cancelado'` | `'cancelada'` |
+| — | `'Reprogramado'` | `'reprogramado'` |
+
+### 18. 🟢 Limpieza de datos
+
+```sql
+DELETE FROM historial;
+DELETE FROM visitas;
+```
+
+### Archivos modificados (sesión 5)
+
+| Archivo | Cambios |
+|---------|---------|
+| `js/programacion.js` | 7 referencias de estado actualizadas a PascalCase |
+| `js/registro.js` | 6 referencias actualizadas |
+| `js/historial.js` | Display map con nuevos nombres |
+| `js/admin.js` | 6 referencias KPIs + 3 clases log auditoría |
+| `js/helpers.js` | `verificarAutoCierre()` usa `'RetiradoAutomatico'` y `'Cancelado'` |
+| `css/components.css` | Clases `.estado-*` mapeadas a lowercase de PascalCase |
+| `auto-cierre.sql` | Función `fn_auto_cierre_diario` actualizada con PascalCase |
+| `SUPABASE-MIGRATION.md` | CHECK constraints y estados actualizados |
+| `AGENTS.md` | Estados actualizados en esquema y auto-cierre |
+| `MEJORAS.md` | Esta sesión |

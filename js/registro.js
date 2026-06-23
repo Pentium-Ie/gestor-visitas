@@ -23,7 +23,7 @@
       const { data, error } = await supabase
         .from('visitas')
         .select('*, visitantes!inner(*), anfitriones!left(*)')
-        .eq('estado', 'ingresado')
+        .eq('estado', 'Ingresado')
         .order('fecha_ingreso', { ascending: false });
       if (error) throw error;
       visitasActivas = data || [];
@@ -123,7 +123,7 @@
 
       const { data: visita, error: visErr } = await supabase.from('visitas').insert({
         visitante_id: visitanteId, anfitrion_id: anfitrionId, motivo: motivo || null,
-        obs_ingreso: obs, fecha_ingreso: fechaIngreso, estado: 'ingresado', creado_por: userId
+        obs_ingreso: obs, fecha_ingreso: fechaIngreso, estado: 'Ingresado', creado_por: userId
       }).select('id').single();
       if (visErr) throw visErr;
 
@@ -131,7 +131,7 @@
       const { error: histErr } = await supabase.from('historial').insert({
         visitante_id: visitanteId, tipo_doc: tipoDoc, num_doc: numDoc,
         nombre, empresa, motivo: motivo || null, anfitrion_id: anfitrionId,
-        anfitrion_nombre: anfitrionInput, estado: 'ingreso', obs,
+        anfitrion_nombre: anfitrionInput, estado: 'Ingresado', obs,
         fecha: fechaIngreso, creado_por: userId, grupo_id: grupoId,
         visita_id: visita.id
       });
@@ -162,12 +162,12 @@
     try {
       const entry = visitasActivas.find(p => p.id === visitorToCheckoutId);
       if (!entry) throw new Error('Visita no encontrada');
-      if (entry.estado !== 'ingresado') { mostrarToast('La visita ya no está en planta.', 'error'); cerrarModal(modal); visitorToCheckoutId = null; toggleLoading(false); enableButton(modalConfirm); return; }
+      if (entry.estado !== 'Ingresado') { mostrarToast('La visita ya no está en planta.', 'error'); cerrarModal(modal); visitorToCheckoutId = null; toggleLoading(false); enableButton(modalConfirm); return; }
       const v = entry.visitantes;
       const userId = await getCurrentUserId();
 
       const { error: upErr } = await supabase.from('visitas').update({
-        fecha_salida: new Date().toISOString(), obs_salida: obs, estado: 'retirado'
+        fecha_salida: new Date().toISOString(), obs_salida: obs, estado: 'Retirado'
       }).eq('id', visitorToCheckoutId);
       if (upErr) throw upErr;
 
@@ -180,7 +180,7 @@
         visitante_id: v.id, tipo_doc: v.tipo_doc, num_doc: v.num_doc,
         nombre: v.nombre, empresa: v.empresa, motivo: entry.motivo || null,
         anfitrion_id: entry.anfitrion_id, anfitrion_nombre: entry.anfitriones?.nombre || '—',
-        estado: 'salida', obs, fecha: new Date().toISOString(),
+        estado: 'Retirado', obs, fecha: new Date().toISOString(),
         creado_por: userId, grupo_id: (histGrupo && histGrupo.length > 0) ? histGrupo[0].grupo_id : generarUUID(),
         visita_id: visitorToCheckoutId
       });

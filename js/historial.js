@@ -54,7 +54,7 @@
       const dt = formatDate(entry.fecha_ingreso || entry.fecha_programada || entry.created_at);
       const fechaStr = dt ? dt.fecha : '—';
       const horaStr = dt ? dt.hora : '';
-      const estado = entry.estado === 'programado' ? 'Programado' : entry.estado === 'ingresado' ? 'Ingresado' : entry.estado === 'retirado' ? 'Retirado' : entry.estado === 'cancelado' ? 'Cancelado' : entry.estado || '—';
+      const estado = entry.estado || '—';
       const estadoClass = (entry.estado || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
       const anfitrion = entry.anfitriones ? entry.anfitriones.nombre : '—';
       const tr = document.createElement('tr');

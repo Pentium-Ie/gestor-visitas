@@ -75,7 +75,7 @@ visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
 | fecha_programada | TIMESTAMPTZ | NULL para ingreso directo |
 | fecha_ingreso | TIMESTAMPTZ | NULL si solo programado |
 | fecha_salida | TIMESTAMPTZ | |
-| estado | TEXT | CHECK IN ('programado','ingresado','retirado','cancelado') |
+| estado | TEXT | CHECK IN ('Programado','Ingresado','Retirado','Cancelado') |
 | creado_por | UUID | FK → perfiles(id) |
 | created_at | TIMESTAMPTZ | |
 | updated_at | TIMESTAMPTZ | Trigger `fn_visitas_updated_at()` |
@@ -83,10 +83,10 @@ visitas (tabla fuente de verdad — 1 fila = 1 visita con estado)
 **CHECK de máquina de estados:**
 ```sql
 CHECK (
-  (estado = 'ingresado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NULL) OR
-  (estado = 'retirado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NOT NULL) OR
-  (estado = 'programado' AND fecha_programada IS NOT NULL AND fecha_ingreso IS NULL AND fecha_salida IS NULL) OR
-  (estado = 'cancelado')
+  (estado = 'Ingresado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NULL) OR
+  (estado = 'Retirado' AND fecha_ingreso IS NOT NULL AND fecha_salida IS NOT NULL) OR
+  (estado = 'Programado' AND fecha_programada IS NOT NULL AND fecha_ingreso IS NULL AND fecha_salida IS NULL) OR
+  (estado = 'Cancelado')
 )
 ```
 
@@ -103,7 +103,7 @@ CHECK (
 | motivo | TEXT | |
 | anfitrion_id | BIGINT | |
 | anfitrion_nombre | VARCHAR(150) | |
-| estado | VARCHAR(20) | CHECK IN ('ingreso','salida','cancelada','ingreso_programado','salida_automatica','reprogramado','agendado') |
+| estado | VARCHAR(20) | CHECK IN ('Programado','Reprogramado','Ingresado','IngresadoProgramado','Retirado','RetiradoAutomatico','Cancelado') |
 | obs | TEXT | |
 | fecha | TIMESTAMPTZ | |
 | fecha_programada | TIMESTAMPTZ | Solo para programaciones |
@@ -131,6 +131,13 @@ La columna `historial.programada_id` también fue eliminada.
 | `fn_kpi_conversion_programados()` | `TABLE(total_programados INT, ingresaron INT, tasa_porcentaje NUMERIC)` | Tasa de conversión de programados |
 | `fn_kpi_evolucion_mensual()` | `TABLE(mes TEXT, total INT)` | Visitas por mes (últimos 12 meses) |
 | `fn_kpi_distribucion_anfitriones()` | `TABLE(anfitrion_nombre VARCHAR(150), total INT)` | Distribución de visitas por anfitrión |
+| `fn_auto_cierre_diario()` | `void` | Auto-cierre 23:00 Lima: cancela programados sin ingreso + checkout de visitantes en planta |
+
+## Cron Jobs (pg_cron)
+
+| Job | Schedule (UTC) | Hora Lima | Acción |
+|-----|---------------|-----------|--------|
+| `auto-cierre-2300` | `0 4 * * *` | 23:00 | Ejecuta `fn_auto_cierre_diario()` |
 
 ---
 
@@ -189,6 +196,11 @@ Nota: `historial` requiere rol `admin` para SELECT/INSERT, y `visitas` requiere 
 1. UPDATE `visitas` set `estado='cancelado'`
 2. INSERT en `historial` con `estado='cancelada'`
 
+### Auto-cierre Diario (23:00 Lima)
+Ejecutado automáticamente por pg_cron (`auto-cierre-2300`, `0 4 * * *` UTC):
+1. **Cancelar programados sin ingreso**: `visitas.estado='programado'` con `fecha_programada` del día actual → `UPDATE estado='cancelado'` + `INSERT historial(estado='cancelada', obs='[Auto] Cancelación programada 23:00')`
+2. **Checkout automático en planta**: `visitas.estado='ingresado'` → `UPDATE estado='retirado', fecha_salida=NOW(), obs_salida='Salida automática 23:00'` + `INSERT historial(estado='salida_automatica', obs='[Auto] Salida automática 23:00')`
+
 ### Admin KPIs
 Las KPIs se calculan vía RPC o client-side desde `visitas`:
 1. **Visitas hoy** — Total ingresos + cuántos siguen en planta
@@ -207,4 +219,6 @@ Las KPIs se calculan vía RPC o client-side desde `visitas`:
 - Zona horaria: Perú (UTC-5, sin DST)
 - Las FK usan BIGINT uniformemente
 - `historial` requiere rol `admin` para SELECT (RLS)
-- Máquina de estados enforce vía CHECK: `programado→ingresado→retirado` o `→cancelado`
+- Máquina de estados enforce vía CHECK: `Programado→Ingresado→Retirado` o `→Cancelado`
+- Estados en PascalCase para consistencia entre `visitas.estado` y `historial.estado`
+- `historial` registra 7 eventos: `Programado` (nuevo), `Reprogramado` (editado), `Ingresado` (directo), `IngresadoProgramado` (desde programación), `Retirado` (manual), `RetiradoAutomatico` (auto 23:00), `Cancelado`

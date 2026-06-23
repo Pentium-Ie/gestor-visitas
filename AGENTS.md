@@ -30,13 +30,20 @@ Sistema web de gestión de visitas con diseño glass-morphism, persistencia en S
 - **Touch targets**: botones con `min-height: 34-38px`
 
 ## Esquema de Datos
-- **`visitas`** — tabla fuente de verdad (1 fila = 1 visita). CHECK constraints: estado IN ('programado','ingresado','retirado','cancelado'), obs_salida ≥4, máquina de estados.
-- **`historial`** — log inmutable (solo INSERT, FK `visita_id` → visitas). RLS: solo admin SELECT.
+- **`visitas`** — tabla fuente de verdad (1 fila = 1 visita). CHECK: estado IN ('Programado','Ingresado','Retirado','Cancelado'), obs_salida ≥4, máquina de estados.
+- **`historial`** — log inmutable (solo INSERT, FK `visita_id` → visitas). RLS: solo admin SELECT. CHECK: estado IN ('Programado','Reprogramado','Ingresado','IngresadoProgramado','Retirado','RetiradoAutomatico','Cancelado')
 - **`visitantes`** — upsert por tipo_doc+num_doc. CHECK: tipo_doc IN ('DNI','CE','PAS')
 - **`anfitriones`** — solo lectura (15 registros seeded). Índice GIN trgm en nombre.
 - **`perfiles`** — FK `ON DELETE RESTRICT` a `auth.users(id)`. CHECK: rol IN ('admin','operador')
 - Función `fn_get_users_info(user_ids UUID[])` para lookup batch de emails
 - 6 KPI functions (`fn_kpi_visitas_hoy`, `fn_kpi_tiempo_promedio`, `fn_kpi_top_anfitrion`, `fn_kpi_conversion_programados`, `fn_kpi_evolucion_mensual`, `fn_kpi_distribucion_anfitriones`)
+- Función `fn_auto_cierre_diario()` ejecutada vía pg_cron (`auto-cierre-2300`) a las 23:00 Lima
+
+## Auto-cierre diario
+- **Server-side**: `fn_auto_cierre_diario()` (PL/pgSQL) programada con pg_cron a las 23:00 Lima (04:00 UTC)
+- **Acciones**: (1) programados sin ingreso → `Cancelado` con historial `'Cancelado'`, (2) ingresados sin salida → `Retirado` con historial `'RetiradoAutomatico'`
+- **Frontend**: `verificarAutoCierre()` en helpers.js muestra toast al usuario al entrar al sistema
+- **Archivos**: `auto-cierre.sql` (migración a ejecutar), `js/helpers.js`, `js/app.js`
 
 ## Infraestructura Cloud
 - **Supabase**: proyecto `bygwwnaudkxinytgbmrf`, URL `https://bygwwnaudkxinytgbmrf.supabase.co`, región `sa-east-1`

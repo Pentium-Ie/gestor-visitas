@@ -227,6 +227,39 @@ function getLimaDateStr() {
   return c.year + '-' + String(c.month).padStart(2, '0') + '-' + String(c.day).padStart(2, '0');
 }
 
+async function verificarAutoCierre() {
+  const pad = (n) => String(n).padStart(2, '0');
+  const ahora = new Date();
+  const utc = ahora.getTime() + ahora.getTimezoneOffset() * 60000;
+  const limaOff = -300;
+  const lima = new Date(utc + limaOff * 60000);
+  const todayStart = `${lima.getFullYear()}-${pad(lima.getMonth() + 1)}-${pad(lima.getDate())}T05:00:00Z`;
+  const tomorrow = new Date(lima);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const todayEnd = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}T05:00:00Z`;
+  try {
+    const { data } = await supabase
+      .from('historial')
+      .select('estado')
+      .gte('fecha', todayStart)
+      .lt('fecha', todayEnd)
+      .ilike('obs', '[Auto]%')
+      .limit(1000);
+    if (!data || data.length === 0) return;
+    const salidas = data.filter(r => r.estado === 'RetiradoAutomatico').length;
+    const canceladas = data.filter(r => r.estado === 'Cancelado').length;
+    const partes = [];
+    if (salidas > 0) partes.push(`${salidas} salida(s) automática(s)`);
+    if (canceladas > 0) partes.push(`${canceladas} cancelación(es) automática(s)`);
+    if (partes.length > 0) {
+      mostrarToast(`Auto-cierre 23:00 — ${partes.join(', ')}`, 'info');
+      logError('info', `Auto-cierre: ${partes.join(', ')}`);
+    }
+  } catch (e) {
+    logError('warn', 'verificarAutoCierre', e.message);
+  }
+}
+
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.date-picker-btn');
   if (!btn) return;

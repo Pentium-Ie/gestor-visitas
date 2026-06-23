@@ -118,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
       viewDashboard.classList.remove('hidden');
       window.AppState.registro.renderVisitors();
       window.AppState.programacion.renderProgramadas();
+      verificarAutoCierre();
       workspacePanels.forEach(panel => panel.classList.add('hidden-section'));
       const registroPanel = document.getElementById('sec-registro');
       if (registroPanel) registroPanel.classList.remove('hidden-section');
@@ -250,6 +251,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     const { data: { session } } = await supabase.auth.getSession();
-    if (session) entrarAlSistema();
+    if (session) {
+      entrarAlSistema();
+      setTimeout(() => verificarAutoCierre(), 1500);
+    }
   })();
 });
